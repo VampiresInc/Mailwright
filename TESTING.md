@@ -1,6 +1,6 @@
 # Mailwright retest checklist
 
-Build: 0.2.0-alpha.6. Test Forever first, then Retail and Classic. Offline tests use
+Build: 0.2.0-alpha.7. Test Forever first, then Retail and Classic. Offline tests use
 mocked APIs; they cannot establish compatibility with the actual client or server.
 
 ## Setup and existing contacts

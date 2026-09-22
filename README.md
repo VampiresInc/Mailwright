@@ -35,4 +35,4 @@ Tested in **Retail and Forever**. Classic versions are included but still need i
 
 ## Credits
 
-Inspired by Postal, with thanks to its original authors and maintainers. Mailwright is an independent project, released under the [MIT License](LICENSE).
+Inspired by Postal, with thanks to its original authors and maintainers. Mailwright is an independent project, released under the [All Rights Reserved license](LICENSE).

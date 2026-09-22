@@ -2,7 +2,7 @@
 
 Created by **Arametheus**.
 
-Mailwright 0.2.0-alpha.6 is an independently implemented mailbox addon inspired
+Mailwright 0.2.0-alpha.7 is an independently implemented mailbox addon inspired
 by Postal's workflow. It uses its own Lua modules and account-wide MailwrightDB;
 no Postal source or bundled libraries are included in the Mailwright package.
 
@@ -88,7 +88,7 @@ first and leaving Postal and SavedVariables untouched.
 
 ## License and acknowledgement
 
-Original Mailwright code is released under the MIT License in LICENSE.
+Mailwright uses the All Rights Reserved license in LICENSE. Players may install and use unmodified releases; code modification, reuse, and redistribution require prior written permission, subject to the exceptions in that license. Earlier MIT grants remain in effect for previously published code.
 Postal inspired the feature goals. Thanks to its original authors and maintainers,
 and in remembrance of the community members who kept it working over the years.
 Mailwright is an independent project, not an official Postal continuation.

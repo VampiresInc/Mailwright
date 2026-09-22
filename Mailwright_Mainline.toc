@@ -1,7 +1,8 @@
 ## Interface: 120100
 ## Title: Mailwright
-## Version: 0.2.0-alpha.6
+## Version: 0.2.0-alpha.7
 ## Author: Arametheus
+## X-License: All Rights Reserved
 ## Notes: Modern mailbox tools for Retail, Classic, and WoW: Forever
 ## Category: Mail
 ## SavedVariables: MailwrightDB
