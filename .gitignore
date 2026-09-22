@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.tools/
+dist/
+*.zip
+LocalSavedData/
+LocalLoad*.lua
+SavedVariables/
+.env
+.env.*
