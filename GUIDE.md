@@ -81,8 +81,8 @@ See TESTING.md for migration steps and the in-game retest checklist.
 ## Development
 
 Run tests/run.py with Python and lupa.lua51 available. The workspace test runner
-also finds the local .tools installation in the parent folder. Run tools/package.py
-to build a verified ZIP in the parent dist folder. tools/install.ps1 installs only
+also finds the local .tools installation in the repository root. Run tools/package.py
+to build a verified ZIP in the repository dist folder. tools/install.ps1 installs only
 Mailwright files into a specified AddOns folder, backing up existing Mailwright
 first and leaving Postal and SavedVariables untouched.
 

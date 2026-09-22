@@ -14,7 +14,7 @@ foreach ($name in $files) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $name) -PathType Leaf)) { throw "Missing source file: $name" }
 }
 if (Test-Path -LiteralPath $destination) {
-    $backupRoot = Join-Path (Split-Path $source -Parent) 'dist'
+    $backupRoot = Join-Path $source 'dist'
     New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
     $backup = Join-Path $backupRoot ('Mailwright-installed-backup-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '.zip')
     # Never follow the local Forever junction into account SavedVariables.

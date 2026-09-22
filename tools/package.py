@@ -5,7 +5,7 @@ import re
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-DIST = ROOT.parent / 'dist'
+DIST = ROOT / 'dist'
 FILES = ['Core.lua', 'API.lua', 'Contacts.lua', 'Mailbox.lua', 'Sending.lua',
          'UI.lua', 'MailboxUI.lua', 'FlavorForever.lua', 'LICENSE', 'README.md', 'TESTING.md']
 

@@ -8,3 +8,4 @@ LocalLoad*.lua
 SavedVariables/
 .env
 .env.*
+artwork/
