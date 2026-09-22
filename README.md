@@ -1,99 +1,38 @@
 # Mailwright
 
-Created by **Arametheus**.
+A World of Warcraft mail addon by **Arametheus**, inspired by Postal and built into the game's mailbox.
 
-Mailwright 0.2.0-alpha.6 is an independently implemented mailbox addon inspired
-by Postal's workflow. It uses its own Lua modules and account-wide MailwrightDB;
-no Postal source or bundled libraries are included in the Mailwright package.
+## Features
 
-Features in this alpha:
-
-- Open all, money-only collection, attachment/money/auction filters, free-slot
-  reserve, server acknowledgement, operation timeout and cancellation.
-- Message selection, Shift ranges, Ctrl same-sender selection, collect/return
-  selected messages, expiry indicators, paging, confirmed empty-message deletion.
-- Contacts, recent recipients, alts, friends, guild and clickable autocomplete.
-- Forever first/last names and Normal/PvP ruleset groups; incompatible known alts
-  are disabled and excluded from autocomplete. Unknown contacts are not guessed.
-- Multiline contact export/import at the bottom of the Contacts menu. Backups
-  preserve client, realm and ruleset information. Plain one-name-per-line imports
-  support moving existing contacts from the previous local Postal build.
-- Quick attach by category, minimum quality and bag, with category recipients.
-- Alt-click attachment, Alt+Ctrl-click matching stacks and optional Express send.
-- Copy/read mail, safe forward drafts, money subjects, collected-money summary,
-  and temporary trade blocking with restoration of the previous setting.
+- Open all mail, collect money, or open and return selected messages.
+- Contacts, recent recipients, alts, friends, and guild menus.
+- Hover menus with class colors and level details for alts and guild members.
+- Quick attachments, Alt-click item attachment, and optional Express sending.
+- Copy mail text and prepare forwarding drafts.
+- Export and import contacts for backups.
+- Forever first and last names, with Normal/PvP ruleset grouping.
 
 ## Installation
 
-Extract the Mailwright folder into the target client's Interface/AddOns folder.
-Fully restart WoW, disable Postal, and enable Mailwright on each character.
-The addon refuses concurrent mailbox automation while Postal is loaded.
+Place the **Mailwright** folder in your client's `Interface/AddOns` folder, restart WoW, and enable it. Disable Postal while using Mailwright.
 
-Mailwright adds controls directly to the game's mailbox. Checkboxes beside inbox
-rows select mail; Open and Return act on that selection. The small arrow beside
-To opens Contacts. The title-bar arrow opens options, and the category icons down the right edge provide Quick attach.
-Right-click a category icon for attachment options. Copy and Forward appear on the native opened-message frame.
-Normal mail clicks and page buttons retain the game's own behavior. Shift-click
-a native mail icon to collect; Ctrl-click to return. Click an expiry label to
-return a message or confirm deletion of an empty one. There is no companion inbox
-window. Copy and contact import/export open a text dialog only when requested.
+Open a mailbox to get started. The arrow beside **To** opens contacts; the title-bar arrow opens options.
 
-Commands: /mw, /mwstatus, /mw export, /mw import.
+## Compatibility
 
-## Client targets and limits
+Tested in **Retail and Forever**. Classic versions are included but still need in-game testing.
 
-Manifests target Retail 12.1.0, Classic Mists 5.5.4 and Forever 1.60.1. Separate
-legacy Classic manifests are also supplied. Retail and Forever have been tested
-in game by the author; Classic variants still need live testing. Manifest
-declarations and mocked tests are not certification of compatibility.
-The Camelot manifest explicitly marks Forever, whose project ID resembles Retail.
+**Forever beta:** Build 1.60.1.69913 had a saved-data loading issue. Our restart testing used a local workaround that is not included in the public download. Export your contacts and verify they survive a full restart. [Details](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md#forever-beta-persistence-limitation).
 
-COD and GM mail are never collected automatically. Mailwright does not automatically
-delete empty letters. Forwarding leaves a draft for review and supports text and
-distinct, cached, non-stackable attachments that are not already in your bags.
-Other attachments must be collected and attached manually. Quick attach skips
-uncached, locked or bound items. On legacy clients without binding information,
-items with binding rules are conservatively excluded from bulk attachment.
-Normal backpack/bag slots are scanned; bank and reagent-only bag slots are excluded.
+## Slash commands
 
-Automatic Express sending is off by default and does not send money or COD drafts.
-Cross-ruleset checks apply to Mailwright's recipient selection and automatic send;
-they cannot validate unknown recipients or change the game's native Send behavior.
+- `/mw` — Open Mailwright's mailbox controls.
+- `/mwstatus` — Show version and saved-data status.
+- `/mw export` — Export contacts.
+- `/mw import` — Import contacts.
 
-The database initializes at the addon's ADDON_LOADED event. /mwstatus distinguishes
-loaded data from a new database. If a beta client fails to load SavedVariables,
-an addon cannot guarantee persistence. Export contacts before closing the game
-until reload/logout tests pass on your build. No personal contacts are hardcoded.
+[Report an issue](https://github.com/VampiresInc/Mailwright/issues) · [Usage and development guide](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md)
 
-### Forever beta persistence limitation
+## Credits
 
-Testing on Forever beta build 1.60.1.69913 encountered a client issue where saved
-variables were written but not loaded on the next launch. The author's successful
-restart testing used a local filesystem workaround that loads the existing saved
-data before addon initialization. That workaround is not included in the public
-ZIP and is not a general persistence fix. Export your contacts to a text file
-outside the game and verify a complete restart before relying on this beta build.
-The development installer preserves an already configured local workaround; it
-does not create one. Retail does not require this workaround.
-
-See TESTING.md for migration steps and the in-game retest checklist.
-
-## Development
-
-Run tests/run.py with Python and lupa.lua51 available. The workspace test runner
-also finds the local .tools installation in the parent folder. Run tools/package.py
-to build a verified ZIP in the parent dist folder. tools/install.ps1 installs only
-Mailwright files into a specified AddOns folder, backing up existing Mailwright
-first and leaving Postal and SavedVariables untouched.
-
-## License and acknowledgement
-
-Original Mailwright code is released under the MIT License in LICENSE.
-Postal inspired the feature goals. Thanks to its original authors and maintainers,
-and in remembrance of the community members who kept it working over the years.
-Mailwright is an independent project, not an official Postal continuation.
-The license covers Mailwright's original files only; it does not relicense Postal.
-
-Recipient lists use hover submenus and Part groups for long lists. Alt and guild
-entries show available level/class details in class colors, plus guild ranks.
-Move away to dismiss the menus, or click a name to address your draft.
+Inspired by Postal, with thanks to its original authors and maintainers. Mailwright is an independent project, released under the [MIT License](LICENSE).
