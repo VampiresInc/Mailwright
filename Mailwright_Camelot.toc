@@ -4,6 +4,7 @@
 ## Author: Arametheus
 ## X-Curse-Project-ID: 1706898
 ## X-Wago-ID: v63Qq7Gb
+## X-WoWI-ID: 27220
 ## X-License: All Rights Reserved
 ## Notes: Modern mailbox tools for Retail, Classic, and WoW: Forever
 ## Category: Mail
