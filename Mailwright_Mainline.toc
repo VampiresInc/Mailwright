@@ -1,8 +1,9 @@
 ## Interface: 120100
 ## Title: Mailwright
-## Version: 0.2.0-alpha.7
+## Version: 0.2.0
 ## Author: Arametheus
 ## X-Curse-Project-ID: 1706898
+## X-Wago-ID: v63Qq7Gb
 ## X-License: All Rights Reserved
 ## Notes: Modern mailbox tools for Retail, Classic, and WoW: Forever
 ## Category: Mail

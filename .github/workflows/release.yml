@@ -1,0 +1,43 @@
+name: Tagged release
+on:
+  push:
+    tags:
+      - 'v*'
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependency
+        run: python -m pip install lupa==2.6
+      - name: Run Lua regression tests
+        run: python tests/run.py
+      - name: Build and validate release assets
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python tools/release.py --tag "$RELEASE_TAG"
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          flags=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" dist/release/"$RELEASE_TAG"/*.zip dist/release/"$RELEASE_TAG"/release.json \
+            --verify-tag --title "Mailwright ${RELEASE_TAG#v}" \
+            --notes-file RELEASE_NOTES.md "${flags[@]}"
+      - name: Upload to CurseForge
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python tools/curseforge.py --tag "$RELEASE_TAG"

@@ -20,18 +20,18 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Compatibility
 
-Tested in **Retail and Forever**. Classic versions are included but still need in-game testing.
+**Retail: Release (0.2.0). Forever: Beta (0.2.0-beta.1).** Both have been tested in game. Other Classic variants remain alpha and need in-game testing. Download the package for your client.
 
 **Forever beta:** Build 1.60.1.69913 had a saved-data loading issue. Our restart testing used a local workaround that is not included in the public download. Export your contacts and verify they survive a full restart. [Details](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md#forever-beta-persistence-limitation).
 
 ## Slash commands
 
-- `/mw` — Open Mailwright's mailbox controls.
-- `/mwstatus` — Show version and saved-data status.
-- `/mw export` — Export contacts.
-- `/mw import` — Import contacts.
+- `/mw` â€” Open Mailwright's mailbox controls.
+- `/mwstatus` â€” Show version and saved-data status.
+- `/mw export` â€” Export contacts.
+- `/mw import` â€” Import contacts.
 
-[Report an issue](https://github.com/VampiresInc/Mailwright/issues) · [Usage and development guide](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md)
+[Report an issue](https://github.com/VampiresInc/Mailwright/issues) Â· [Usage and development guide](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md)
 
 ## Credits
 

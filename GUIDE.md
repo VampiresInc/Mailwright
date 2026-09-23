@@ -97,3 +97,19 @@ The license covers Mailwright's original files only; it does not relicense Posta
 Recipient lists use hover submenus and Part groups for long lists. Alt and guild
 entries show available level/class details in class colors, plus guild ranks.
 Move away to dismiss the menus, or click a name to address your draft.
+
+## Automated releases
+
+Retail and Forever use separate version tags and packages. Update the corresponding
+client TOC version and RELEASE_NOTES.md, then push a matching tag. Retail v0.2.0
+is stable; Forever v0.2.0-beta.1 is a prerelease. Classic TOCs remain alpha until tested.
+The release builder requires a tag to match exactly one client manifest. It embeds
+that client version in Core.lua inside the ZIP and includes only that client's TOCs.
+Artifacts are in dist/release/<tag>/. Tests run before publication.
+Do not reuse tags or manually create a release while its workflow is running.
+
+Wago GitHub automation can ingest the client-specific assets using Multiple game
+versions. Leave Always publish for latest game patch unchecked. Verify classification
+and patch mapping after the first run. CurseForge uploads use the CF_API_KEY GitHub Actions repository secret and project 1706898. Keep native CurseForge packaging disabled. The uploader derives the exact game patch from the packaged interface number and the release channel from the tag. Failed uploads are not retried automatically; inspect the project before retrying to avoid duplicates.
+The legacy tools/package.py creates a combined development archive; do not publish
+that archive as the stable Retail release.
