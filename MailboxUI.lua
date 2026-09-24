@@ -327,7 +327,7 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
         entries[#entries + 1] = {text = "", separator = true, disabled = true}
         for _, value in ipairs({"Recent", "Alts", "All alts", "Friends", "Guild"}) do
             local name = value
-            local labels = {Recent = "Recently Mailed", Alts = "Alts (current ruleset)", ["All alts"] = "All Alts (by ruleset)"}
+            local labels = {Recent = "Recently Mailed", Alts = self.forever and "Alts (current ruleset)" or "Alts", ["All alts"] = self.forever and "All Alts (by ruleset)" or "All Alts"}
             local open = function(b) M:ShowContactMenu(name, nil, b, depth + 1) end
             entries[#entries + 1] = {text = (labels[name] or name) .. " >", disabled = name ~= "Friends" and #M:Recipients(name) == 0,
                 action = open, hover = open}
@@ -348,7 +348,7 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
             records = {}
         end
         for _, r in ipairs(records) do
-            if group == "All alts" and previous ~= (r.ruleset or "Unknown") then
+            if self.forever and group == "All alts" and previous ~= (r.ruleset or "Unknown") then
                 previous = r.ruleset or "Unknown"; entries[#entries + 1] = {text = "-- " .. previous .. " --", disabled = true}
             end
             local name = r.name

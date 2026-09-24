@@ -102,8 +102,8 @@ Move away to dismiss the menus, or click a name to address your draft.
 
 Retail and Forever use separate version tags and packages. Update the corresponding
 client TOC version and RELEASE_NOTES.md, then push a matching tag. Retail v0.2.0
-is stable; Forever v0.2.0-beta.1 is a prerelease. Classic TOCs remain alpha until tested.
-The release builder requires a tag to match exactly one client manifest. It embeds
+is stable; Forever v0.2.0-beta.1 is a prerelease. Era, Mists, and Anniversary are tested and included in v0.2.1. Wrath and Cataclysm are excluded.
+The release builder selects all client manifests matching the tag. It embeds
 that client version in Core.lua inside the ZIP and includes only that client's TOCs.
 Artifacts are in dist/release/<tag>/. Tests run before publication.
 Do not reuse tags or manually create a release while its workflow is running.

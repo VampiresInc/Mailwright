@@ -13,12 +13,12 @@ args = parser.parse_args()
 version = args.tag.removeprefix('v')
 # Select by the exact manifest version so a stable tag never includes beta assets.
 matches = []
-for flavor, manifest, suffix in [('mainline', 'Mainline', ''), ('forever', 'Camelot', '-forever')]:
+for flavor, manifest, suffix in [('mainline', 'Mainline', ''), ('forever', 'Camelot', '-forever'), ('classic', 'Vanilla', '-classic'), ('mists', 'Mists', '-mists'), ('bcc', 'TBC', '-bcc')]:
     declared = re.search(r'^## Version: (.+)$', (ROOT / f'Mailwright_{manifest}.toc').read_text(), re.M).group(1)
     if declared == version:
         matches.append((flavor, manifest, suffix))
-if not args.tag.startswith('v') or len(matches) != 1:
-    raise SystemExit('Tag must match exactly one client manifest version')
+if not args.tag.startswith('v') or not matches:
+    raise SystemExit('Tag must match at least one client manifest version')
 output = ROOT / 'dist' / 'release' / args.tag
 output.mkdir(parents=True, exist_ok=True)
 metadata = []

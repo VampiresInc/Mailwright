@@ -20,7 +20,7 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Compatibility
 
-**Retail: Release (0.2.0). Forever: Beta (0.2.0-beta.1).** Both have been tested in game. Other Classic variants remain alpha and need in-game testing. Download the package for your client.
+**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever remains beta; Retail PTR 12.1.5 is not yet verified.
 
 **Forever beta:** Build 1.60.1.69913 had a saved-data loading issue. Our restart testing used a local workaround that is not included in the public download. Export your contacts and verify they survive a full restart. [Details](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md#forever-beta-persistence-limitation).
 

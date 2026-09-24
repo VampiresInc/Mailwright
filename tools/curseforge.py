@@ -10,14 +10,10 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 
-def prepare(tag):
+def prepare(tag, release):
     if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta)\.[0-9]+)?", tag):
         raise ValueError("Unsupported release tag")
     folder = ROOT / "dist" / "release" / tag
-    releases = json.loads((folder / "release.json").read_text())["releases"]
-    if len(releases) != 1:
-        raise ValueError("Expected exactly one client artifact")
-    release = releases[0]
     filename = release["filename"]
     if Path(filename).name != filename:
         raise ValueError("Invalid artifact filename")
@@ -38,11 +34,16 @@ def main():
     parser.add_argument("--tag", required=True)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    archive, metadata = prepare(args.tag)
+    releases = json.loads((ROOT / "dist" / "release" / args.tag / "release.json").read_text())["releases"]
+    prepared = [prepare(args.tag, release) for release in releases]
+    for archive, metadata in prepared:
+        if args.dry_run:
+            print(archive.name, metadata["releaseType"], metadata["gameVersionNames"])
+        else:
+            upload(archive, metadata)
+
+def upload(archive, metadata):
     data = archive.read_bytes()
-    if args.dry_run:
-        print(archive.name, metadata["releaseType"], metadata["gameVersionNames"])
-        return
     token = os.environ.get("CF_API_KEY")
     if not token:
         raise SystemExit("Missing CF_API_KEY repository secret")
