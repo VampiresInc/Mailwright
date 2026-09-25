@@ -43,8 +43,8 @@ Commands: /mw, /mwstatus, /mw export, /mw import.
 ## Client targets and limits
 
 Manifests target Retail 12.1.0, Classic Mists 5.5.4 and Forever 1.60.1. Separate
-legacy Classic manifests are also supplied. Retail and Forever have been tested
-in game by the author; Classic variants still need live testing. Manifest
+legacy Classic manifests are also supplied. Retail, Forever, Era, Mists, and Anniversary have been tested
+in game by the author. Manifest
 declarations and mocked tests are not certification of compatibility.
 The Camelot manifest explicitly marks Forever, whose project ID resembles Retail.
 
@@ -65,16 +65,13 @@ loaded data from a new database. If a beta client fails to load SavedVariables,
 an addon cannot guarantee persistence. Export contacts before closing the game
 until reload/logout tests pass on your build. No personal contacts are hardcoded.
 
-### Forever beta persistence limitation
+### Forever saved-data validation
 
-Testing on Forever beta build 1.60.1.69913 encountered a client issue where saved
-variables were written but not loaded on the next launch. The author's successful
-restart testing used a local filesystem workaround that loads the existing saved
-data before addon initialization. That workaround is not included in the public
-ZIP and is not a general persistence fix. Export your contacts to a text file
-outside the game and verify a complete restart before relying on this beta build.
-The development installer preserves an already configured local workaround; it
-does not create one. Retail does not require this workaround.
+Build 1.60.1.69913 previously failed to reload saved variables. On September 25,
+2026, Arametheus confirmed native loading and full-restart persistence on installed
+build 1.60.1.70009 with all local forced-load entries disabled. Forever 0.2.2 is
+released without the workaround. Older affected clients should be updated.
+The local backup remains available for recovery; public ZIPs contain no personal data.
 
 See TESTING.md for migration steps and the in-game retest checklist.
 
@@ -102,7 +99,7 @@ Move away to dismiss the menus, or click a name to address your draft.
 
 Retail and Forever use separate version tags and packages. Update the corresponding
 client TOC version and RELEASE_NOTES.md, then push a matching tag. Retail v0.2.0
-is stable; Forever v0.2.0-beta.1 is a prerelease. Era, Mists, and Anniversary are tested and included in v0.2.1. Wrath and Cataclysm are excluded.
+is stable; Forever v0.2.2 is stable following native persistence validation. Era, Mists, and Anniversary are tested and included in v0.2.1. Wrath and Cataclysm are excluded.
 The release builder selects all client manifests matching the tag. It embeds
 that client version in Core.lua inside the ZIP and includes only that client's TOCs.
 Artifacts are in dist/release/<tag>/. Tests run before publication.

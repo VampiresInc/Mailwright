@@ -20,9 +20,9 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Compatibility
 
-**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever remains beta; Retail PTR 12.1.5 is not yet verified.
+**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported by the separate 0.2.2 release. Retail PTR 12.1.5 is not yet verified.
 
-**Forever beta:** Build 1.60.1.69913 had a saved-data loading issue. Our restart testing used a local workaround that is not included in the public download. Export your contacts and verify they survive a full restart. [Details](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md#forever-beta-persistence-limitation).
+**Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
 ## Slash commands
 

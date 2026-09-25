@@ -21,8 +21,6 @@ def prepare(tag, release):
     interface = client["interface"]
     patch = f"{interface // 10000}.{interface // 100 % 100}.{interface % 100}"
     channel = "alpha" if "-alpha." in tag else "beta" if "-beta." in tag else "release"
-    if client["flavor"] == "forever" and channel == "release":
-        raise ValueError("Forever must remain a prerelease pending persistence validation")
     metadata = {"changelog": (ROOT / "RELEASE_NOTES.md").read_text(),
                 "changelogType": "markdown", "displayName": f"Mailwright {tag[1:]} ({client['flavor']})",
                 "gameVersionNames": [patch], "releaseType": channel,
