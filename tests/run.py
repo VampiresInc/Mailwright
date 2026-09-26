@@ -327,4 +327,29 @@ for client, interface, project in [('Retail',120100,1),('Classic',50504,19),('Er
     test, _ = runtime()
     test.execute(f'function GetBuildInfo() return "{client}","build","date",{interface} end; WOW_PROJECT_ID={project}; playerName="Tester"; Mailwright:Emit("ADDON_LOADED","Mailwright"); assert(not Mailwright.forever); Mailwright:Emit("MAIL_SHOW"); assert(Mailwright.ui:IsShown()); assert(Mailwright:AddContact("Recipient")); Mailwright:Emit("MAIL_CLOSED")')
     print(f'PASS {client} initialization and UI smoke test')
+split, _ = runtime()
+split.execute(r'''
+function UnitName() return playerName, surname end
+playerName, surname = 'Selle', nil
+Mailwright:Emit('ADDON_LOADED','Mailwright')
+assert(next(Mailwright.db.alts)==nil)
+surname = 'Quickgale'
+Mailwright:Emit('PLAYER_ENTERING_WORLD')
+assert(Mailwright.player.name=='Selle Quickgale')
+playerName, surname, playerGuid = 'Other', 'Person', 'Player-test-2'
+Mailwright:Emit('PLAYER_LOGIN')
+assert(Mailwright.player.name=='Other Person')
+local alts=Mailwright:Recipients('Alts')
+assert(#alts==1 and alts[1].name=='Selle Quickgale')
+assert(#Mailwright:Recipients('All alts')==1)
+playerName='Other Person'
+Mailwright:RecordPlayer()
+assert(Mailwright.player.name=='Other Person')
+''')
+print('PASS fresh Forever split surnames, delayed identity and alt menus')
+for interface in [120100, 11509, 50504, 20506]:
+    ordinary, _ = runtime()
+    ordinary.execute(f'GetBuildInfo=function() return "client","build","date",{interface} end')
+    ordinary.execute('UnitName=function() return "Tester", "OtherRealm" end; Mailwright:Emit("ADDON_LOADED","Mailwright"); assert(Mailwright.player.name=="Tester")')
+print('PASS non-Forever realm return is not treated as a surname')
 print('All Mailwright checks passed. In-game client testing is still required.')

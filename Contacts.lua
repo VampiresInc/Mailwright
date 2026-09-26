@@ -11,7 +11,12 @@ end
 function M:ContactKey(name) return self:Client() .. "\031" .. string.lower(name) end
 function M:RecordPlayer()
     if not self.db or not UnitName then return end
-    local name = UnitName("player")
+    local name, surname = UnitName("player")
+    -- Forever returns the surname separately; other clients may return a realm.
+    name = self:Trim(name)
+    if self.forever and not name:find("%s") and type(surname) == "string" and self:Trim(surname) ~= "" then
+        name = name .. " " .. self:Trim(surname)
+    end
     name = self:ValidName(name)
     if not name then return end
     local realm = self:Realm()

@@ -1,13 +1,12 @@
-# Mailwright 0.2.2 - Forever release
+# Mailwright 0.2.3 - Forever alt recording fix
 
-- Promote Forever to stable after successful native SavedVariables restart testing.
-- Tested on Forever 1.60.1.70009 by Arametheus with the local forced-load workaround disabled.
-- Includes the existing Forever full-name support and ruleset recipient groups.
-- No forced-load scripts, local junctions, or personal saved data are included.
+- Fix missing alts on fresh Forever installations: combine the separate first and last names returned by the client before recording characters.
+- Confirmed in-game after reproducing the issue on a fresh installation.
+- Log into each character again to populate missing alt records. No manual ruleset setup is required.
+- Native SavedVariables loading remains enabled; the old forced-load workaround is not needed.
 
-Download Mailwright-0.2.2-forever.zip and extract Mailwright into Interface/AddOns.
-Disable Postal while using Mailwright. Older Forever build 1.60.1.69913 had a
-saved-data loading issue; update the client before relying on native persistence.
+Download Mailwright-0.2.3-forever.zip for Forever 1.60.1.
+Disable Postal while using Mailwright.
 
 This release is Forever-only. Retail, Era, Mists, and Anniversary remain on their
 stable 0.2.1 packages. Retail PTR 12.1.5 remains unverified.
