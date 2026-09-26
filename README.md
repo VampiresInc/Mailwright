@@ -26,12 +26,12 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Slash commands
 
-- `/mw` â€” Open Mailwright's mailbox controls.
-- `/mwstatus` â€” Show version and saved-data status.
-- `/mw export` â€” Export contacts.
-- `/mw import` â€” Import contacts.
+- `/mw` - Open Mailwright's mailbox controls.
+- `/mwstatus` - Show version and saved-data status.
+- `/mw export` - Export contacts.
+- `/mw import` - Import contacts.
 
-[Report an issue](https://github.com/VampiresInc/Mailwright/issues) Â· [Usage and development guide](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md)
+[Report an issue](https://github.com/VampiresInc/Mailwright/issues) | [Usage and development guide](https://github.com/VampiresInc/Mailwright/blob/main/GUIDE.md)
 
 ## Credits
 
