@@ -26,7 +26,7 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Slash commands
 
-- `/mw` - Open Mailwright's mailbox controls.
+- `/mw` - Show Mailwright's options while a mailbox is open; otherwise, print version and saved-data status.
 - `/mwstatus` - Show version and saved-data status.
 - `/mw export` - Export contacts.
 - `/mw import` - Import contacts.
