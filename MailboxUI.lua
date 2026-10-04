@@ -161,6 +161,7 @@ function M:InstallInboxRow(slot, row, native)
 end
 
 function M:RefreshUI()
+    self:RefreshAttachmentTabs()
     if not self.ui then return end
     self.uiPage = InboxFrame.pageNum
     local inbox = self:Inbox()
@@ -368,17 +369,10 @@ function M:ShowOptionsMenu()
     local entries = {}
     for _, pair in ipairs({{"items", "Collect attachments"}, {"money", "Collect money"}, {"auctions", "Include auction mail"},
         {"express", "Express shortcuts"}, {"autoSend", "Express automatic send"}, {"moneySubject", "Money subject"},
-        {"summary", "Money summary"}, {"blockTrades", "Block trades"}}) do
+        {"summary", "Money summary"}, {"blockTrades", "Block trades"}, {"showAttachTabs", "Show attachment tabs"}}) do
         local key, text = pair[1], pair[2]
         entries[#entries + 1] = {text = (self.db.options[key] and "[x] " or "[ ] ") .. text, action = function()
-            M.db.options[key] = not M.db.options[key]
-            if key == "blockTrades" then
-                if M.db.options[key] and GetCVar("BlockTrades") == "0" then M.oldTrade = "0"; SetCVar("BlockTrades", "1")
-                elseif not M.db.options[key] and M.oldTrade then
-                    if GetCVar("BlockTrades") == "1" then SetCVar("BlockTrades", M.oldTrade) end
-                    M.oldTrade = nil
-                end
-            end
+            M:SetOption(key, not M.db.options[key])
             M:ShowOptionsMenu()
         end}
     end
@@ -388,6 +382,7 @@ function M:ShowOptionsMenu()
     entries[#entries + 1] = {text = "Delay: " .. self.db.options.delay .. " sec (cycle)", action = function()
         local n = M.db.options.delay + 0.25; M.db.options.delay = n > 2 and 0.25 or n; M:ShowOptionsMenu()
     end}
+    entries[#entries + 1] = {text = "All settings...", action = function() M.menu:Hide(); M:OpenSettings() end}
     entries[#entries + 1] = {text = "Collect money only", action = function() M.menu:Hide(); M:StartQueue("money") end}
     entries[#entries + 1] = {text = "Quick attach >", action = function() M:ShowAttachMenu() end}
     entries[#entries + 1] = {text = "Saved-data status", action = function() M:Print(M:Status()); M.menu:Hide() end}

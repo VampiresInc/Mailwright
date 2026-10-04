@@ -8,6 +8,7 @@ A World of Warcraft mail addon by **Arametheus**, inspired by Postal and built i
 - Contacts, recent recipients, alts, friends, and guild menus.
 - Hover menus with class colors and level details for alts and guild members.
 - Quick attachments, Alt-click item attachment, and optional Express sending.
+- AddOns settings panel and optional attachment side tabs.
 - Copy mail text and prepare forwarding drafts.
 - Export and import contacts for backups.
 - Forever first and last names, with Normal/PvP ruleset grouping.
@@ -18,9 +19,13 @@ Place the **Mailwright** folder in your client's `Interface/AddOns` folder, rest
 
 Open a mailbox to get started. The arrow beside **To** opens contacts; the title-bar arrow opens options.
 
+## Options
+
+Configure Mailwright through the game Settings > AddOns > Mailwright panel (Interface > AddOns on older clients), or choose **All settings...** in the mailbox options menu. Turn off **Show attachment tabs** to hide the side icons; Quick attach remains available in the mailbox menu. Changes are saved immediately; no reload is required. Attachment tabs are visible by default.
+
 ## Compatibility
 
-**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported by the separate 0.2.2 release. Retail PTR 12.1.5 is not yet verified.
+**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.4 provides separate packages for all five clients. Retail PTR 12.1.5 is not yet verified.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 

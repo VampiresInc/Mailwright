@@ -352,4 +352,31 @@ for interface in [120100, 11509, 50504, 20506]:
     ordinary.execute(f'GetBuildInfo=function() return "client","build","date",{interface} end')
     ordinary.execute('UnitName=function() return "Tester", "OtherRealm" end; Mailwright:Emit("ADDON_LOADED","Mailwright"); assert(Mailwright.player.name=="Tester")')
 print('PASS non-Forever realm return is not treated as a surname')
+for modern in [True, False]:
+    settings, _ = runtime()
+    if modern:
+        settings.execute('Settings={RegisterCanvasLayoutCategory=function(f) registered=f; return {GetID=function() return 42 end} end, RegisterAddOnCategory=function(c) assert(c:GetID()==42) end, OpenToCategory=function(id) opened=id end}')
+    else:
+        settings.execute('InterfaceOptions_AddCategory=function(f) registered=f end; InterfaceOptionsFrame_OpenToCategory=function(f) opened=f end')
+    settings.execute(r'''
+MailwrightDB={options={showAttachTabs=false}}
+Mailwright:Emit('ADDON_LOADED','Mailwright')
+local m=Mailwright
+assert(registered==m.settingsPanel)
+m:Emit('MAIL_SHOW')
+for _,b in ipairs(m.attachButtons) do assert(not b:IsShown()) end
+m:SetOption('showAttachTabs',true)
+for _,b in ipairs(m.attachButtons) do assert(b:IsShown()) end
+assert(m.settingsPanel.controls.showAttachTabs:GetChecked())
+local c=m.settingsPanel.controls.showAttachTabs
+c:SetChecked(false); c.scripts.OnClick(c)
+m:Emit('MAIL_CLOSED'); m:Emit('MAIL_SHOW')
+for _,b in ipairs(m.attachButtons) do assert(not b:IsShown()) end
+m:Emit('MAIL_CLOSED')
+SetCVar('BlockTrades','0'); m:SetOption('blockTrades',true)
+assert(GetCVar('BlockTrades')=='0')
+m:OpenSettings()
+assert(opened==(Settings and 42 or m.settingsPanel))
+''')
+print('PASS modern and legacy settings, saved tab visibility and trade scope')
 print('All Mailwright checks passed. In-game client testing is still required.')

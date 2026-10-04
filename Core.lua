@@ -2,11 +2,11 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.1"
+M.addon, M.version = addon, "0.2.4"
 M.listeners, M.selection = {}, {}
 M.defaults = {reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
-    items = true, money = true, quality = 0, bag = -1, category = "All"}
+    showAttachTabs = true, items = true, money = true, quality = 0, bag = -1, category = "All"}
 function M:Print(s)
     if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffMailwright:|r " .. tostring(s)) end
 end
@@ -40,6 +40,7 @@ function M:Initialize()
     self.db = db
     self.forever = ns.forever or (type(GetBuildInfo) == "function" and select(4, GetBuildInfo()) == 16001) or false
     self:RecordPlayer()
+    self:RegisterSettings()
 end
 M:Listen("ADDON_LOADED", function(self, name) if name == addon then self:Initialize() end end)
 M:Listen("PLAYER_LOGIN", function(self) if self.db then self:RecordPlayer() end end)

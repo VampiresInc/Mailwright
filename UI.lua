@@ -127,3 +127,71 @@ function M:ShowSuggestions(raw)
     if #list > 0 then self:ShowContactMenu("Suggestions", list)
     elseif self.menu and self.menuGroup == "Suggestions" then self.menu:Hide() end
 end
+
+-- Shared setters keep the mailbox menu and AddOns settings in sync.
+function M:RefreshAttachmentTabs()
+    if not self.db then return end
+    for _, b in ipairs(self.attachButtons or {}) do b:SetShown(self.db.options.showAttachTabs) end
+end
+function M:SetOption(key, value)
+    self.db.options[key] = value
+    if key == "blockTrades" and self.mailOpen and not self.conflict then
+        if value and GetCVar("BlockTrades") == "0" then self.oldTrade = "0"; SetCVar("BlockTrades", "1")
+        elseif not value and self.oldTrade then
+            if GetCVar("BlockTrades") == "1" then SetCVar("BlockTrades", self.oldTrade) end
+            self.oldTrade = nil
+        end
+    end
+    self:RefreshAttachmentTabs()
+    if self.settingsPanel then self.settingsPanel.refresh() end
+end
+function M:RegisterSettings()
+    if self.settingsPanel then return end
+    local f = CreateFrame("Frame", nil, UIParent)
+    f.name = "Mailwright"; f:Hide()
+    self.settingsPanel = f
+    label(f, "Mailwright", 16, -16, 500, "GameFontNormalLarge")
+    label(f, "Changes are saved immediately. Mail actions require an open mailbox.", 16, -46, 540)
+    local controls = {}
+    local y = -80
+    for _, pair in ipairs({{"showAttachTabs", "Show attachment tabs beside Send Mail"},
+        {"items", "Collect attachments"}, {"money", "Collect money"}, {"auctions", "Include auction mail"},
+        {"express", "Express shortcuts"}, {"autoSend", "Express automatic send (sends mail immediately)"},
+        {"moneySubject", "Money subject"}, {"summary", "Money summary"}, {"blockTrades", "Block trades while the mailbox is open"}}) do
+        local key = pair[1]
+        controls[key] = checkbox(f, pair[2], 16, y, self.db.options[key], function(value) M:SetOption(key, value) end)
+        y = y - 30
+    end
+    local reserve = button(f, "", 16, y - 8, 260, function()
+        M:SetOption("reserve", math.max(0, math.min(100, M.db.options.reserve + (IsShiftKeyDown() and -1 or 1))))
+    end)
+    label(f, "Click +1; Shift-click -1", 290, y - 14, 240)
+    local delay = button(f, "", 16, y - 42, 260, function()
+        local n = M.db.options.delay + 0.25
+        M:SetOption("delay", n > 2 and 0.25 or n)
+    end)
+    label(f, "Click to cycle collection delay", 290, y - 48, 240)
+    f.refresh = function()
+        for key, control in pairs(controls) do control:SetChecked(M.db.options[key]) end
+        reserve:SetText("Free bag slots: " .. M.db.options.reserve)
+        delay:SetText("Delay: " .. M.db.options.delay .. " sec")
+    end
+    f.controls = controls
+    f:SetScript("OnShow", f.refresh); f.refresh()
+    if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
+        self.settingsCategory = Settings.RegisterCanvasLayoutCategory(f, f.name)
+        Settings.RegisterAddOnCategory(self.settingsCategory)
+    elseif InterfaceOptions_AddCategory then
+        InterfaceOptions_AddCategory(f)
+    end
+end
+function M:OpenSettings()
+    self:RegisterSettings()
+    if self.settingsCategory and Settings and Settings.OpenToCategory then
+        Settings.OpenToCategory(self.settingsCategory:GetID())
+    elseif InterfaceOptionsFrame_OpenToCategory then
+        InterfaceOptionsFrame_OpenToCategory(self.settingsPanel)
+    else
+        self:Print("AddOns settings are unavailable on this client; use /mw at a mailbox.")
+    end
+end

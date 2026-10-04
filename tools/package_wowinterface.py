@@ -3,7 +3,7 @@ import re
 import zipfile
 from package import ROOT, FILES
 
-version = "0.2.3"
+version = "0.2.4"
 interfaces = "120100, 11509, 50504, 20506, 16001"
 entries = {"Mailwright/" + name: (ROOT / name).read_bytes() for name in FILES}
 core = entries["Mailwright/Core.lua"].decode()
