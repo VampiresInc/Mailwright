@@ -25,7 +25,7 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 
 ## Compatibility
 
-**Release:** Retail 12.1.0, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.4 provides separate packages for all five clients. Retail PTR 12.1.5 is not yet verified.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.5 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 

@@ -42,7 +42,7 @@ Commands: /mw, /mwstatus, /mw export, /mw import.
 
 ## Client targets and limits
 
-Manifests target Retail 12.1.0, Classic Mists 5.5.4 and Forever 1.60.1. Separate
+Manifests target Retail 12.1.5, Classic Mists 5.5.4 and Forever 1.60.1. Separate
 legacy Classic manifests are also supplied. Retail, Forever, Era, Mists, and Anniversary have been tested
 in game by the author. Manifest
 declarations and mocked tests are not certification of compatibility.

@@ -323,7 +323,7 @@ assert(Mailwright.db.contacts[Mailwright:ContactKey("Persist Person")])
 ''')
 assert 'Persist Person' in backup
 print('PASS simulated saved-variable reload in a fresh VM')
-for client, interface, project in [('Retail',120100,1),('Classic',50504,19),('Era',11508,2)]:
+for client, interface, project in [('Retail',120105,1),('Classic',50504,19),('Era',11508,2)]:
     test, _ = runtime()
     test.execute(f'function GetBuildInfo() return "{client}","build","date",{interface} end; WOW_PROJECT_ID={project}; playerName="Tester"; Mailwright:Emit("ADDON_LOADED","Mailwright"); assert(not Mailwright.forever); Mailwright:Emit("MAIL_SHOW"); assert(Mailwright.ui:IsShown()); assert(Mailwright:AddContact("Recipient")); Mailwright:Emit("MAIL_CLOSED")')
     print(f'PASS {client} initialization and UI smoke test')
@@ -347,7 +347,7 @@ Mailwright:RecordPlayer()
 assert(Mailwright.player.name=='Other Person')
 ''')
 print('PASS fresh Forever split surnames, delayed identity and alt menus')
-for interface in [120100, 11509, 50504, 20506]:
+for interface in [120105, 11509, 50504, 20506]:
     ordinary, _ = runtime()
     ordinary.execute(f'GetBuildInfo=function() return "client","build","date",{interface} end')
     ordinary.execute('UnitName=function() return "Tester", "OtherRealm" end; Mailwright:Emit("ADDON_LOADED","Mailwright"); assert(Mailwright.player.name=="Tester")')
