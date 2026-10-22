@@ -1,6 +1,6 @@
 ## Interface: 120105, 50504, 16001
 ## Title: Mailwright
-## Version: 0.2.5
+## Version: 0.2.6
 ## Author: Arametheus
 ## X-Curse-Project-ID: 1706898
 ## X-Wago-ID: v63Qq7Gb

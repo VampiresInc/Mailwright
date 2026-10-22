@@ -99,8 +99,27 @@ resetMail(); inbox={{money=1},{money=2},{money=3}}
 local sig=Mailwright:Header(2).signature
 assert(Mailwright:StartQueue('selected',{[2]=sig})); tick(); assert(calls[1][2]==2)
 inbox[2].money=0; tick(); tick(); tick(); assert(not Mailwright.queue and #calls==1)
-resetMail(); inbox={{money=1},{money=2}}; assert(Mailwright:StartQueue('all'))
+resetMail(); inbox={{money=1},{money=2}}; assert(Mailwright:StartQueue('selected',{[2]=true}))
 inbox[2].subject='New message'; tick(); assert(not Mailwright.queue and #calls==0)
+''')
+check('Open All follows live inbox changes without another click', r'''
+resetMail(); inbox={{subject='First',items={{link='item:1'}}},{subject='Second',items={{link='item:2'}}}}
+assert(Mailwright:StartQueue('all'))
+-- Cached attachment information resolves after the initial queue snapshot.
+inbox[2].items[1].link='item:2:resolved'
+tick(); assert(#calls==1 and calls[1][2]==2)
+-- The looted message disappears; the remaining row and its item cache change.
+table.remove(inbox,2); tick()
+inbox[1].items[1].link='item:1:resolved'
+table.insert(inbox,1,{subject='New COD',cod=100,items={{}}})
+tick(); assert(#calls==2 and calls[2][2]==2)
+table.remove(inbox,2); tick(); tick()
+assert(not Mailwright.queue and #calls==2 and inbox[1].cod==100)
+-- A full/reserved bag stops the continuing run before another attachment.
+resetMail(); inbox={{items={{}}},{items={{}}}}; free=8
+assert(Mailwright:StartQueue('all')); tick(); table.remove(inbox,2); tick()
+free=Mailwright.db.options.reserve; tick()
+assert(not Mailwright.queue and #calls==1)
 ''')
 check('return identical messages, timeout, and cancellation', r'''
 resetMail(); inbox={{money=1},{money=1}}; assert(Mailwright:StartQueue('return',{[1]=true}))

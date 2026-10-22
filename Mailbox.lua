@@ -65,6 +65,16 @@ function M:TickQueue()
         return
     end
     if self:Pending() then return end
+    -- Open All targets the live inbox, not a frozen set of row indices.
+    -- Item details can finish loading and messages can move between operations.
+    -- Selected/return/forward queues retain their strict snapshot checks.
+    if q.mode == "all" then
+        local inbox = self:Inbox()
+        q.tasks = {}
+        for i = #inbox, 1, -1 do
+            if self:Eligible(inbox[i], "all") then q.tasks[#q.tasks + 1] = inbox[i] end
+        end
+    end
     local task = q.tasks[1]
     if not task then
         local inbox, total = self:Inbox()
