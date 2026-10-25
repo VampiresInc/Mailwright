@@ -3,7 +3,7 @@ local M = ns.M
 function M:Trim(s) return (tostring(s or ""):gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")) end
 function M:Money(n)
     n = math.floor(tonumber(n) or 0)
-    return string.format("%dg %ds %dc", math.floor(n / 10000), math.floor(n / 100) % 100, n % 100)
+    return self:F("%dg %ds %dc", math.floor(n / 10000), math.floor(n / 100) % 100, n % 100)
 end
 function M:Realm() return GetRealmName and GetRealmName() or "Unknown realm" end
 function M:Ruleset(realm)

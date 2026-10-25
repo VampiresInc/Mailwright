@@ -1,5 +1,11 @@
 local _, ns = ...
 local M = ns.M
+local function forwardItemKey(item)
+    return item.link and item.link:match("item:(%d+)") or item.id and tostring(item.id)
+end
+function M:MailBodyEditor()
+    return SendMailBodyEditBox or (MailEditBox and MailEditBox.ScrollBox and MailEditBox.ScrollBox.EditBox)
+end
 M.categories = {"All", "Trade goods", "Consumables", "Equipment", "Gems", "Recipes", "Quest items"}
 function M:ItemEligible(item, category)
     if not item or not item.link or item.locked or item.bound then return false end
@@ -16,10 +22,11 @@ function M:ItemEligible(item, category)
         or category == "Quest items" and d.class == 12
 end
 function M:StartAttach(items, autoSend)
-    if not self.mailOpen or self.conflict or self.queue or self.attachQueue then return false end
+    if not self.mailOpen or self.conflict or self.queue or self.attachQueue or self.forwardPlan then return false end
     if MailFrameTab_OnClick then MailFrameTab_OnClick(nil, 2) end
     if #items == 0 then self:Print("No eligible cached, unbound items match those filters."); return false end
-    local empty = self:SendCount() == 0 and (not SendMailBodyEditBox or SendMailBodyEditBox:GetText() == "")
+    local editor = self:MailBodyEditor()
+    local empty = self:SendCount() == 0 and editor and editor:GetText() == ""
     self.attachQueue = {items = items, next = GetTime(), recipient = self:Recipient(), autoSend = autoSend and empty, added = 0}
     return true
 end
@@ -32,6 +39,7 @@ function M:QuickAttach()
     self:StartAttach(items, false)
 end
 function M:TickAttachments()
+    if self.forwardPlan then self:TickForward() end
     local q = self.attachQueue
     if not q or GetTime() < q.next then return end
     if q.wait then
@@ -43,7 +51,7 @@ function M:TickAttachments()
     if #q.items == 0 or self:SendCount() >= (ATTACHMENTS_MAX_SEND or 12) then
         self.attachQueue = nil
         if q.autoSend and #q.items == 0 and q.added > 0 and self:Recipient() == q.recipient and self:SendCount() == q.added then self:SendDraft()
-        else self:Print("Attached " .. q.added .. " item stacks. Review the draft before sending.") end
+        else self:Print(self:F("Attached %d item stacks. Review the draft before sending.", q.added)) end
         return
     end
     local item = q.items[1]
@@ -63,7 +71,9 @@ function M:SendDraft()
     self:UpdateMoneySubject()
     local subject = SendMailSubjectEditBox and SendMailSubjectEditBox:GetText() or ""
     if subject == "" then self:Print("Enter a subject before sending."); return end
-    SendMail(recipient, subject, SendMailBodyEditBox and SendMailBodyEditBox:GetText() or "")
+    local editor = self:MailBodyEditor()
+    if not editor then self:Print("Mail editor is not ready. Reopen the mailbox and try again."); return end
+    SendMail(recipient, subject, editor:GetText() or "")
 end
 function M:UpdateMoneySubject()
     if not self.db.options.moneySubject or not SendMailSubjectEditBox then return end
@@ -117,23 +127,25 @@ function M:CopyMail(index)
     local h = self:Header(index)
     if not h then return end
     local body = GetInboxText(index) or ""
-    local lines = {"From: " .. h.sender, "Subject: " .. h.subject, "Money: " .. self:Money(h.money), "", body}
+    local lines = {self:F("From: %s", h.sender), self:F("Subject: %s", h.subject), self:F("Money: %s", self:Money(h.money)), "", body}
     for _, item in ipairs(h.items) do lines[#lines + 1] = item.name .. " x" .. item.count end
     if GetInboxInvoiceInfo then
         local kind, name, player, bid, buyout, deposit, fee = GetInboxInvoiceInfo(index)
         if kind and kind ~= "" then
-            lines[#lines + 1] = "Invoice: " .. kind .. " / " .. tostring(name or "") .. " / " .. tostring(player or "")
-            lines[#lines + 1] = "Bid: " .. self:Money(bid) .. "; buyout: " .. self:Money(buyout) .. "; deposit: " .. self:Money(deposit) .. "; fee: " .. self:Money(fee)
+            lines[#lines + 1] = self:F("Invoice: %s / %s / %s", kind, tostring(name or ""), tostring(player or ""))
+            lines[#lines + 1] = self:F("Bid: %s; buyout: %s; deposit: %s; fee: %s", self:Money(bid), self:Money(buyout), self:Money(deposit), self:Money(fee))
         end
     end
     self:TextWindow("Copy message", table.concat(lines, "\n"), false)
 end
 function M:ForwardMail(index)
-    if self.queue or self.attachQueue then self:Print("Finish the current operation first."); return end
+    if self.queue or self.attachQueue or self.forwardPlan then self:Print("Finish the current operation first."); return end
     local h = self:Header(index)
     if not h then return end
     if h.cod > 0 or h.money > 0 or h.gm then self:Print("Collect money yourself first. COD and GM mail cannot be forwarded."); return end
-    if self:SendCount() > 0 or (SendMailBodyEditBox and SendMailBodyEditBox:GetText() ~= "")
+    local editor = self:MailBodyEditor()
+    if not editor or not SendMailSubjectEditBox then self:Print("Mail editor is not ready. Reopen the mailbox and try again."); return end
+    if self:SendCount() > 0 or editor:GetText() ~= ""
         or (SendMailSubjectEditBox and SendMailSubjectEditBox:GetText() ~= "") or (GetSendMailMoney and GetSendMailMoney() > 0) then
         self:Print("Clear your existing draft before forwarding."); return
     end
@@ -141,28 +153,73 @@ function M:ForwardMail(index)
     local wanted, bags = {}, self:BagItems()
     for _, item in ipairs(h.items) do
         local d = self:ItemDetails(item.link)
-        if not d or d.stack ~= 1 or wanted[item.link] or item.count ~= 1 then
+        local key = forwardItemKey(item)
+        if not key or not d or d.stack ~= 1 or wanted[key] or item.count ~= 1 then
             self:Print("Automatic forwarding requires cached, distinct, non-stackable items. Collect other attachments and attach them manually."); return
         end
-        for _, owned in ipairs(bags) do if owned.link == item.link then self:Print("An identical item is already in your bags. Forward that attachment manually."); return end end
-        wanted[item.link] = true
+        wanted[key] = true
+    end
+    local occupied, existing = {}, {}
+    for _, owned in ipairs(bags) do
+        occupied[owned.bag .. ":" .. owned.slot] = true
+        if wanted[forwardItemKey(owned)] then existing[#existing + 1] = owned end
     end
     if h.count ~= #h.items then self:Print("Wait for attachment details to load."); return end
     local body = GetInboxText(index) or ""
     local function draft()
         if not M.mailOpen then return end
         if MailFrameTab_OnClick then MailFrameTab_OnClick(nil, 2) end
-        SendMailSubjectEditBox:SetText("Fwd: " .. h.subject)
-        SendMailBodyEditBox:SetText("From: " .. h.sender .. "\n\n" .. body)
-        local items, counts = {}, {}
-        for _, item in ipairs(M:BagItems()) do
-            if wanted[item.link] then items[#items + 1] = item; counts[item.link] = (counts[item.link] or 0) + 1 end
-        end
-        for link in pairs(wanted) do
-            if counts[link] ~= 1 then M:Print("Forward draft created; attach the collected items manually because inventory identification was ambiguous."); return end
-        end
-        if #items > 0 then M:StartAttach(items, false) end
-        M:Print("Forward draft ready. Choose a recipient and review before sending.")
+        SendMailSubjectEditBox:SetText(M:F("Fwd: %s", h.subject))
+        editor:SetText(self:F("From: %s", h.sender) .. "\n\n" .. body)
+        if h.count > 0 then
+            M.forwardPlan = {wanted = wanted, occupied = occupied, existing = existing, started = GetTime(), editor = editor,
+                subject = SendMailSubjectEditBox:GetText(), body = editor:GetText()}
+        else M:Print("Forward draft ready. Choose a recipient and review before sending.") end
     end
     if h.count == 0 then draft() else self:StartQueue("forward", {[index] = h.signature}, draft) end
+end
+
+function M:TickForward()
+    local plan = self.forwardPlan
+    if not plan then return end
+    if not self.mailOpen or self.conflict then self.forwardPlan = nil; return end
+    if self:SendCount() > 0 or SendMailSubjectEditBox:GetText() ~= plan.subject
+        or plan.editor:GetText() ~= plan.body or (GetSendMailMoney and GetSendMailMoney() > 0) then
+        self.forwardPlan = nil
+        self:Print("Forward draft changed. Attach the collected items manually."); return
+    end
+    -- Existing copies must stay where they were. Only previously empty slots
+    -- can contain this mail's non-stackable attachments.
+    for _, previous in ipairs(plan.existing) do
+        local current = self:BagItem(previous.bag, previous.slot)
+        if not current or current.link ~= previous.link or current.count ~= previous.count then
+            self.forwardPlan = nil
+            self:Print("Existing inventory moved during forwarding. Attach the collected items manually."); return
+        end
+    end
+    local items, counts, ready = {}, {}, true
+    for _, item in ipairs(self:BagItems()) do
+        local key = forwardItemKey(item)
+        if plan.wanted[key] and not plan.occupied[item.bag .. ":" .. item.slot] then
+            counts[key] = (counts[key] or 0) + 1
+            items[#items + 1] = item
+            if not item.link or item.locked then ready = false end
+            if item.bound or item.count ~= 1 then counts[key] = 2 end
+        end
+    end
+    for key in pairs(plan.wanted) do
+        if (counts[key] or 0) > 1 then
+            self.forwardPlan = nil
+            self:Print("Forward draft created; attach the collected items manually because inventory identification was ambiguous."); return
+        end
+        if counts[key] ~= 1 then ready = false end
+    end
+    if ready then
+        self.forwardPlan = nil
+        self:StartAttach(items, false)
+        self:Print("Forward draft ready. Choose a recipient and review before sending.")
+    elseif GetTime() - plan.started > 6 then
+        self.forwardPlan = nil
+        self:Print("Forward draft created, but the collected items are not ready in your bags. Attach them manually.")
+    end
 end

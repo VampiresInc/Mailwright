@@ -12,7 +12,7 @@ function M:Eligible(h, mode)
     return (self.db.options.money and h.money > 0) or (self.db.options.items and h.count > 0)
 end
 function M:StartQueue(mode, indices, finished)
-    if self.queue or self.attachQueue then self:Print("Finish or cancel the current operation first."); return false end
+    if self.queue or self.attachQueue or self.forwardPlan then self:Print("Finish or cancel the current operation first."); return false end
     if not self.mailOpen or self.conflict then return false end
     local tasks = {}
     local inbox, total = self:Inbox()
@@ -37,7 +37,7 @@ end
 function M:FinishQueue()
     local q = self.queue
     self.queue = nil
-    self:Print("Finished: " .. q.completed .. " messages processed.")
+    self:Print(self:F("Finished: %d messages processed.", q.completed))
     self:RefreshUI()
     if q.finished then q.finished() end
 end
@@ -57,6 +57,10 @@ function M:TickQueue()
                 self:StopQueue("Inbox changed unexpectedly; stopped safely."); return
             elseif q.wait.kind == "item" and current.count >= task.count then
                 self:StopQueue("Inbox changed unexpectedly; stopped safely."); return
+            elseif q.mode == "forward" and current.count == 0 and current.money == 0 then
+                -- Collection is confirmed. Auction letters may disappear on a later
+                -- inbox update; do not validate their now-finished row again.
+                table.remove(q.tasks, 1); q.completed = q.completed + 1
             else q.tasks[1] = current end
             q.wait = nil
             q.next = GetTime() + self.db.options.delay

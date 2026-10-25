@@ -2,13 +2,13 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.6"
+M.addon, M.version = addon, "0.2.7"
 M.listeners, M.selection = {}, {}
-M.defaults = {reserve = 1, delay = 0.35, blockTrades = true, express = true,
+M.defaults = {language = "auto", reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
     showAttachTabs = true, items = true, money = true, quality = 0, bag = -1, category = "All"}
 function M:Print(s)
-    if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffMailwright:|r " .. tostring(s)) end
+    if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffMailwright:|r " .. tostring(self:L(s))) end
 end
 function M:Listen(event, callback)
     self.listeners[event] = self.listeners[event] or {}
@@ -28,6 +28,8 @@ function M:Initialize()
         if type(db[key]) ~= "table" then db[key] = {} end
     end
     for k, v in pairs(self.defaults) do if type(db.options[k]) ~= type(v) then db.options[k] = v end end
+    if db.options.language ~= "auto" and db.options.language ~= "enUS"
+        and not self.translations[db.options.language] then db.options.language = "auto" end
     db.options.reserve = math.max(0, math.min(100, tonumber(db.options.reserve) or 1))
     db.options.delay = math.max(0.2, math.min(3, tonumber(db.options.delay) or 0.35))
     db.options.quality = math.max(0, math.min(5, math.floor(db.options.quality)))
@@ -71,7 +73,7 @@ function M:SetMailOpen(open)
         if self.menu then self.menu:Hide() end
         if self.oldTrade and GetCVar("BlockTrades") == "1" then SetCVar("BlockTrades", self.oldTrade) end
         self.oldTrade = nil
-        if self.db.options.summary and (self.collected or 0) > 0 then self:Print("Collected " .. self:Money(self.collected) .. " this visit.") end
+        if self.db.options.summary and (self.collected or 0) > 0 then self:Print(self:F("Collected %s this visit.", self:Money(self.collected))) end
     end
 end
 M:Listen("MAIL_SHOW", function(self) self:SetMailOpen(true) end)
@@ -86,12 +88,12 @@ M:Listen("PLAYER_LOGOUT", function(self)
     if self.oldTrade and GetCVar("BlockTrades") == "1" then SetCVar("BlockTrades", self.oldTrade) end
 end)
 function M:Status()
-    if not self.db then return "Database has not initialized." end
+    if not self.db then return self:L("Database has not initialized.") end
     local c, a = 0, 0
     for _ in pairs(self.db.contacts) do c = c + 1 end
     for _ in pairs(self.db.alts) do a = a + 1 end
-    return self.version .. "; " .. c .. " contacts; " .. a .. " alts. Saved data: " ..
-        (self.loadedData and "loaded" or "not loaded / new database") .. "; session count: " .. self.db.sessions
+    return self:F("%s; %d contacts; %d alts. Saved data: %s; session count: %d", self.version, c, a,
+        self:L(self.loadedData and "loaded" or "not loaded / new database"), self.db.sessions)
 end
 SLASH_MAILWRIGHT1, SLASH_MAILWRIGHT2 = "/mailwright", "/mw"
 SlashCmdList.MAILWRIGHT = function(msg)

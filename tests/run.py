@@ -11,7 +11,7 @@ def runtime():
     compile_fn = lua.eval('function(code,name) local fn,err=loadstring(code,name); assert(fn,err); return fn end')
     lua.execute((ROOT / 'tests/harness.lua').read_text(encoding='utf-8'))
     ns = lua.table()
-    for filename in ['Core.lua','API.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua']:
+    for filename in ['Core.lua','Locales.lua','API.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua']:
         compile_fn((ROOT / filename).read_text(encoding='utf-8'), '@'+filename)('Mailwright', ns)
     return lua, compile_fn
 
@@ -201,6 +201,86 @@ sendItems[1]='Gift item'; tick(); tick()
 assert(not m.queue and not m.attachQueue and #calls==2)
 assert(SendMailSubjectEditBox:GetText()=='Fwd: Gift')
 ''')
+check('Retail auction forwarding survives delayed removal of emptied mail', r'''
+local m=Mailwright; m.forever=false
+resetMail()
+SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+inbox={{sender='Auction House',subject='Auction won: Design',body='Recipe purchase',invoice='buyer',items={{link='item:77'}}}}
+itemDetails['item:77']={stack=1,class=9,bind=0}
+m:ForwardMail(1); tick()
+assert(calls[1][1]=='item')
+inbox[1].items={}
+bags['0:3']={hyperlink='item:77',itemID=77,stackCount=1,isBound=false}
+tick() -- The item disappears before the auction letter is removed.
+inbox={{sender='Other',subject='Unrelated mail',items={{link='item:88'}}}}
+tick(); tick()
+assert(SendMailSubjectEditBox:GetText()=='Fwd: Auction won: Design')
+assert(m.attachQueue and calls[#calls][1]=='attach')
+sendItems[1]='Design: Polished Ammolite'; tick(); tick()
+assert(not m.queue and not m.attachQueue and #calls==2)
+assert(#inbox[1].items==1) -- Never collect the replacement row.
+''')
+check('forward waits for unlocked bag data and tolerates changed link context', r'''
+local m=Mailwright
+resetMail(); SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+inbox={{subject='Delayed recipe',items={{link='item:77'}}}}
+m:ForwardMail(1); tick(); inbox[1].items={}; tick(); tick()
+assert(m.forwardPlan and not m.attachQueue and #calls==1)
+assert(not m:StartQueue('all'))
+bags['0:3']={hyperlink='item:77:0:0:0:0:0:0:0:90',itemID=77,stackCount=1,isLocked=true,isBound=false}
+tick(); assert(m.forwardPlan and #calls==1)
+bags['0:3'].isLocked=false; tick()
+assert(not m.forwardPlan and m.attachQueue and calls[2][1]=='attach')
+sendItems[1]='Recipe'; tick(); tick(); assert(#calls==2)
+-- Multiple new matches must never be selected arbitrarily.
+resetMail(); SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+inbox={{subject='Duplicate',items={{link='item:77'}}}}
+m:ForwardMail(1); tick(); inbox[1].items={}; tick(); tick()
+bags['0:3']={hyperlink='item:77',itemID=77,stackCount=1,isBound=false}
+bags['0:4']={hyperlink='item:77:90',itemID=77,stackCount=1,isBound=false}
+tick(); assert(not m.forwardPlan and not m.attachQueue and #calls==1)
+-- Missing bag data has a bounded wait and leaves the draft intact.
+resetMail(); SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+inbox={{subject='Timeout',items={{link='item:77'}}}}
+m:ForwardMail(1); tick(); inbox[1].items={}; tick(); tick()
+assert(m.forwardPlan); clock=clock+7; tick()
+assert(not m.forwardPlan and #calls==1 and SendMailSubjectEditBox:GetText()=='Fwd: Timeout')
+''')
+check('forward attaches only the new copy when an identical item is already owned', r'''
+local m=Mailwright
+resetMail(); SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+bags['0:2']={hyperlink='item:77',itemID=77,stackCount=1,isBound=false}
+inbox={{subject='Another recipe',items={{link='item:77'}}}}
+m:ForwardMail(1); assert(m.queue); tick(); inbox[1].items={}; tick(); tick()
+assert(m.forwardPlan and #calls==1)
+bags['0:5']={hyperlink='item:77:90',itemID=77,stackCount=1,isBound=false}
+tick(); assert(calls[2][1]=='attach' and calls[2][2]==0 and calls[2][3]==5)
+assert(bags['0:2'].hyperlink=='item:77')
+sendItems[1]='Recipe'; tick(); tick(); assert(#calls==2)
+-- Moving the old copy must not make it look newly collected.
+resetMail(); SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+bags['0:2']={hyperlink='item:77',itemID=77,stackCount=1,isBound=false}
+inbox={{subject='Moved recipe',items={{link='item:77'}}}}
+m:ForwardMail(1); tick(); inbox[1].items={}; tick(); tick()
+bags['0:5']=bags['0:2']; bags['0:2']=nil
+tick(); assert(not m.forwardPlan and not m.attachQueue and #calls==1)
+''')
+check('forward supports nested mail editor and preserves existing drafts', r'''
+local m=Mailwright
+resetMail()
+local legacy=SendMailBodyEditBox
+SendMailBodyEditBox=nil
+local editor=CreateFrame('EditBox')
+MailEditBox={ScrollBox={EditBox=editor}}
+SendMailSubjectEditBox:SetText(''); editor:SetText('Unsent letter')
+inbox={{sender='Sender',subject='Letter',body='Original text'}}
+m:ForwardMail(1)
+assert(editor:GetText()=='Unsent letter' and SendMailSubjectEditBox:GetText()=='' and not m.queue)
+editor:SetText(''); m:ForwardMail(1)
+assert(editor:GetText()=='From: Sender\n\nOriginal text')
+assert(SendMailSubjectEditBox:GetText()=='Fwd: Letter')
+MailEditBox=nil; SendMailBodyEditBox=legacy
+''')
 check('reopening installs hooks once; failed sending does not populate recent', r'''
 local m=Mailwright
 resetMail(); m:InstallSendHooks()
@@ -293,6 +373,21 @@ C_FriendList=nil; C_BattleNet=nil; BNGetNumFriends=nil
 GetNumFriends=function() return 1 end; GetFriendInfo=function() return 'Legacyfriend' end
 assert(m:Recipients('Friends')[1].name=='Legacyfriend')
 GetNumFriends=nil; GetFriendInfo=nil; m.forever=wasForever
+''')
+check('bottom options dropdown retains its clicked anchor and stays open', r'''
+local m=Mailwright
+m.openAllOptions:GetScript('OnClick')(m.openAllOptions)
+assert(m.menu.anchor==m.openAllOptions and m.menu:IsShown())
+MouseIsOver=function(frame) return frame==m.openAllOptions end
+m:MenuMouseWatch(1); assert(m.menu:IsShown())
+for _,row in ipairs(m.menu.rows) do
+ if row.caption:GetText():find('Collect attachments',1,true) then row.action(); break end
+end
+assert(m.menu.anchor==m.openAllOptions)
+m:MenuMouseWatch(1); assert(m.menu:IsShown())
+m.settingsButton:GetScript('OnClick')(m.settingsButton)
+assert(m.menu.anchor==m.settingsButton)
+MouseIsOver=nil
 ''')
 check('hover parts, class and rank labels, recipient identity, and dismissing the menu tree', r'''
 local m=Mailwright
@@ -398,4 +493,94 @@ m:OpenSettings()
 assert(opened==(Settings and 42 or m.settingsPanel))
 ''')
 print('PASS modern and legacy settings, saved tab visibility and trade scope')
+for locale in ['enUS','enGB','deDE','frFR','esES','esMX','itIT','ptBR','ruRU','koKR','zhCN','zhTW','unknown']:
+    language, _ = runtime()
+    language.execute('GetLocale=function() return '+repr(locale)+' end')
+    language.execute(r'''
+Mailwright:Emit('ADDON_LOADED','Mailwright')
+local m=Mailwright
+assert(m.db.options.language=='auto')
+assert(type(m:L('Open All'))=='string')
+assert(m:L('Untranslated fallback')=='Untranslated fallback')
+local client=m:Client(); local key=m:ContactKey('Example Surname')
+m:ShowContactMenu()
+m.db.options.language='enUS'
+assert(m:L('Open All')=='Open All')
+m.db.options.language='deDE'
+assert(m:L('Open All')=='Alles öffnen')
+assert(m:Client()==client and m:ContactKey('Example Surname')==key)
+m.db.options.language='auto'
+m:ChooseLanguage(m.settingsPanel)
+local chosen
+for _,row in ipairs(m.menu.rows) do
+ if row:IsShown() and row.caption:GetText()=='Deutsch' then chosen=row end
+end
+assert(chosen); chosen.action(chosen)
+assert(m.db.options.language=='deDE')
+-- User-supplied names must not be translated even if they match a UI label.
+m.forever=false; assert(m:AddContact('Open'))
+m:ShowContactMenu()
+local found=false
+for _,row in ipairs(m.menu.rows) do
+ if row:IsShown() and row.caption:GetText()=='Open' then found=true end
+end
+assert(found)
+''')
+print('PASS locale matching, overrides, fallback, selection and unchanged contact identities')
+check('language preference survives reload and menu anchors do not reference their own children', r'''
+local m=Mailwright
+m.db.options.language='frFR'
+local saved=m.db; m.db=nil; MailwrightDB=saved; m:Initialize()
+assert(m:Locale()=='frFR')
+m:ShowOptionsMenu()
+local row=m.menu.rows[1]; row.action(row)
+assert(m.menuPanels[2]:IsShown() and m.menuPanels[2].anchor==row)
+m.menu:Hide(); assert(not m.menuPanels[2]:IsShown())
+m.db.options.language='invalid'; m.db=nil; MailwrightDB=saved; m:Initialize()
+assert(m.db.options.language=='auto')
+m.db.options.language='enUS'
+''')
+# Every supported language must cover the entire catalog and retain format arguments.
+import re
+locale_runtime, _ = runtime()
+catalogs = locale_runtime.globals().Mailwright.translations
+reference = set(catalogs['deDE'].keys())
+for locale in ['deDE','frFR','esES','esMX','itIT','ptBR','ruRU','koKR','zhCN','zhTW']:
+    catalog = catalogs[locale]
+    assert set(catalog.keys()) == reference, (locale, reference - set(catalog.keys()))
+    for key in reference:
+        value = catalog[key]
+        assert value and '\ufffd' not in value, (locale, key)
+        tokens = re.findall(r'%(?!%)[-+ #0]*[0-9.]*[a-zA-Z]', key)
+        assert tokens == re.findall(r'%(?!%)[-+ #0]*[0-9.]*[a-zA-Z]', value), (locale, key)
+        args = [7 if token[-1] in 'diuoxXfgeE' else 'Test' for token in tokens]
+        locale_runtime.eval('string.format')(value, *args)
+    # Exercise every localized view, including validation and existing-draft protection.
+    l, _ = runtime()
+    l.execute('GetLocale=function() return '+repr(locale)+' end')
+    l.execute(r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m:Emit('MAIL_SHOW')
+assert(m:Locale()==GetLocale())
+assert(m.settingsPanel.languageButton:GetText():find(m:L('Language'),1,true))
+local stable=m:ExportContacts()
+m:ShowOptionsMenu(); m:ShowAttachMenu(); m:ShowContactMenu()
+m:TextWindow('Import contacts','',true)
+local _,why=m:ValidName(''); assert(why==m:L('Type a recipient name in the To field first, then choose Add contact.'))
+assert(m:Status():find(m.version,1,true))
+m.db.options.language='enUS'; assert(m:ExportContacts()==stable)
+assert(m:Locale()=='enUS')
+''')
+# Audit static text entry points; dynamic templates use F before interpolation.
+ignore={'','X','C','F','Mailwright','-- '}
+for filename in ['Core.lua','API.lua','Mailbox.lua','Sending.lua','Contacts.lua','UI.lua','MailboxUI.lua']:
+    source=(ROOT/filename).read_text(encoding='utf-8')
+    patterns=[r':(?:Print|StopQueue|L|F|TextWindow)\("([^"\n]*)"',
+              r'(?:label|button|tip)\([^,]+, "([^"\n]*)"',
+              r'text = "([^"\n]*)"']
+    for pattern in patterns:
+        for key in re.findall(pattern,source):
+            key=key.removesuffix(' >')
+            if key in ignore or key=='< Contacts': continue
+            assert key in reference, (filename, 'untranslated static text', key)
+print(f'PASS complete coverage and formatting: {len(reference)} strings in 10 non-English locales; localized UI smoke tests')
 print('All Mailwright checks passed. In-game client testing is still required.')

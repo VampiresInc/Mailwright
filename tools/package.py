@@ -6,7 +6,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / 'dist'
-FILES = ['Core.lua', 'API.lua', 'Contacts.lua', 'Mailbox.lua', 'Sending.lua',
+FILES = ['Core.lua', 'Locales.lua', 'API.lua', 'Contacts.lua', 'Mailbox.lua', 'Sending.lua',
          'UI.lua', 'MailboxUI.lua', 'FlavorForever.lua', 'LICENSE', 'README.md', 'TESTING.md']
 
 def package_files():

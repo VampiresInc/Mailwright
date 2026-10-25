@@ -21,11 +21,11 @@ Open a mailbox to get started. The arrow beside **To** opens contacts; the title
 
 ## Options
 
-Configure Mailwright through the game Settings > AddOns > Mailwright panel (Interface > AddOns on older clients), or choose **All settings...** in the mailbox options menu. Turn off **Show attachment tabs** to hide the side icons; Quick attach remains available in the mailbox menu. Changes are saved immediately; no reload is required. Attachment tabs are visible by default.
+Configure Mailwright through the game Settings > AddOns > Mailwright panel (Interface > AddOns on older clients), or choose **All settings...** in the mailbox options menu. Turn off **Show attachment tabs** to hide the side icons; Quick attach remains available in the mailbox menu. Changes are saved immediately. Reload the UI after changing language. Attachment tabs are visible by default.
 
 ## Compatibility
 
-**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.6 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.7 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
@@ -41,3 +41,18 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 ## Credits
 
 Inspired by Postal, with thanks to its original authors and maintainers. Mailwright is an independent project, released under the [All Rights Reserved license](LICENSE).
+
+## Languages
+
+Automatic follows the WoW client language, with English as the fallback. Choose
+Language in Mailwright's AddOns settings or mailbox menu to override it, then
+reload the UI. English can always be selected explicitly. Contacts, character
+names, category keys, and imported/exported data are not translated.
+
+Translations cover Mailwright's menus, settings, tooltips, contact validation,
+status messages, and errors in German, French, Spanish (Spain and Latin America),
+Italian, Brazilian Portuguese, Russian, Korean, and Simplified/Traditional Chinese.
+Spanish regional choices currently share wording. English is always available.
+The compact C/F buttons mean Copy/Forward; their hover tooltips are translated.
+Item names, spell/class names, mail content, and native game controls follow WoW's
+client language. Community corrections to translation wording are welcome.

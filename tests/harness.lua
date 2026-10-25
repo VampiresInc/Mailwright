@@ -7,7 +7,7 @@ for _, name in ipairs({"SetPoint", "ClearAllPoints", "SetFrameStrata", "SetClamp
     "SetHighlightTexture", "EnableMouseWheel", "SetMultiLine", "SetFontObject", "SetAutoFocus", "SetMaxLetters",
     "SetTextInsets", "SetScrollChild", "HighlightText", "Raise", "SetOwner", "AddLine",
     "SetNormalFontObject", "SetHighlightFontObject", "SetDisabledFontObject", "SetNormalTexture",
-    "SetPushedTexture", "SetFrameLevel", "RegisterForClicks", "SetColorTexture"}) do methods[name] = noop end
+    "SetHitRectInsets", "SetPushedTexture", "SetFrameLevel", "RegisterForClicks", "SetColorTexture"}) do methods[name] = noop end
 function methods:GetFrameLevel() return 1 end
 function methods:GetPoint() return "TOPLEFT",self.parent,"TOPLEFT",20,-70 end
 function methods:GetStringWidth() return #(self.text or "") * 5 end
@@ -134,7 +134,7 @@ function tick(seconds)
     Mailwright:TickQueue(); Mailwright:TickAttachments()
 end
 function resetMail()
-    Mailwright.queue,Mailwright.attachQueue=nil,nil
+    Mailwright.queue,Mailwright.attachQueue,Mailwright.forwardPlan=nil,nil,nil
     Mailwright.mailOpen,Mailwright.conflict=true,false
     Mailwright.selection={}; Mailwright.db.options.reserve=1
     Mailwright.db.options.items,Mailwright.db.options.money,Mailwright.db.options.auctions=true,true,true

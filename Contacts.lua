@@ -2,10 +2,10 @@ local _, ns = ...
 local M = ns.M
 function M:ValidName(raw)
     local name = self:Trim(raw)
-    if name == "" then return nil, "Type a recipient name in the To field first, then choose Add contact." end
-    if #name > 100 or name:find("[%c%d|:;<>%[%]%%]") then return nil, "That recipient name contains unsupported characters." end
-    if self.forever and not name:match("^%S+%s+%S+") then return nil, "Forever recipients need both first and last names." end
-    if not self.forever and name:find(" ", 1, true) then return nil, "Use Character or Character-Realm on this client." end
+    if name == "" then return nil, self:L("Type a recipient name in the To field first, then choose Add contact.") end
+    if #name > 100 or name:find("[%c%d|:;<>%[%]%%]") then return nil, self:L("That recipient name contains unsupported characters.") end
+    if self.forever and not name:match("^%S+%s+%S+") then return nil, self:L("Forever recipients need both first and last names.") end
+    if not self.forever and name:find(" ", 1, true) then return nil, self:L("Use Character or Character-Realm on this client.") end
     return name
 end
 function M:ContactKey(name) return self:Client() .. "\031" .. string.lower(name) end
@@ -31,13 +31,13 @@ function M:AltRecipient(r)
     return r.name .. "-" .. r.realm:gsub("%s", "")
 end
 function M:Compatible(r)
-    if r.client and r.client ~= "" and r.client ~= self:Client() then return false, "Different WoW client" end
+    if r.client and r.client ~= "" and r.client ~= self:Client() then return false, self:L("Different WoW client") end
     if self.forever and r.ruleset and r.ruleset ~= "" and r.ruleset ~= self:Ruleset() then
-        return false, "Mail unavailable: " .. r.ruleset .. " ruleset"
+        return false, self:F("Mail unavailable: %s ruleset", self:L(r.ruleset))
     end
     if not self.forever and WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then
-        if r.realm and r.realm ~= "" and r.realm ~= self:Realm() then return false, "Different realm" end
-        if self.player and r.faction and r.faction ~= self.player.faction then return false, "Different faction" end
+        if r.realm and r.realm ~= "" and r.realm ~= self:Realm() then return false, self:L("Different realm") end
+        if self.player and r.faction and r.faction ~= self.player.faction then return false, self:L("Different faction") end
     end
     return true
 end
@@ -70,7 +70,7 @@ function M:AddContact(raw)
     end
     if matches > 1 then record.ruleset, record.realm = nil, nil end
     self.db.contacts[self:ContactKey(name)] = record
-    self:Print("Saved contact: " .. name)
+    self:Print(self:F("Saved contact: %s", name))
     return true
 end
 function M:RemoveContact(raw)
@@ -78,7 +78,7 @@ function M:RemoveContact(raw)
     local key = self:ContactKey(name)
     if not self.db.contacts[key] then self:Print("Put a saved contact's name in To first."); return end
     self.db.contacts[key] = nil
-    self:Print("Removed contact: " .. name)
+    self:Print(self:F("Removed contact: %s", name))
 end
 function M:RememberRecipient(raw)
     local name = self:ValidName(raw)
@@ -104,13 +104,13 @@ function M:ExportContacts()
     return table.concat(rows, "\n")
 end
 function M:ParseContacts(text)
-    if #text > 200000 then return nil, "Import is too large (maximum 200 KB)." end
+    if #text > 200000 then return nil, self:L("Import is too large (maximum 200 KB).") end
     local records, errors, formatted, first = {}, 0, false, true
     for line in (text .. "\n"):gmatch("([^\n]*)\n") do
         line = line:gsub("\r$", "")
         if line ~= "" then
             if first and line == "MAILWRIGHT-CONTACTS\t1" then formatted = true
-            elseif first and line:find("^MAILWRIGHT%-CONTACTS") then return nil, "Unsupported backup version."
+            elseif first and line:find("^MAILWRIGHT%-CONTACTS") then return nil, self:L("Unsupported backup version.")
             else
                 local name, client, ruleset, realm
                 if formatted then
@@ -142,7 +142,7 @@ function M:ImportContacts(text)
         if self.db.contacts[key] then duplicates = duplicates + 1
         else self.db.contacts[key] = r; added = added + 1 end
     end
-    return true, string.format("Imported %d; kept %d existing; skipped %d invalid lines.", added, duplicates, invalid)
+    return true, self:F("Imported %d; kept %d existing; skipped %d invalid lines.", added, duplicates, invalid)
 end
 function M:Recipients(group)
     local list, seen = {}, {}
@@ -229,7 +229,7 @@ function M:RecipientLabel(r, group)
     local text = r.name
     if group == "All alts" then
         if r.realm and not self.forever and not text:find("-", 1, true) then text = text .. "-" .. r.realm end
-        if r.faction then text = text .. "-" .. r.faction end
+        if r.faction then text = text .. "-" .. self:L(r.faction) end
     end
     if r.rank and r.rank ~= "" then text = text .. " |cffffd100(" .. r.rank .. ")|r" end
     local className = r.className or (LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[r.class or ""]) or r.class
@@ -241,6 +241,6 @@ function M:RecipientLabel(r, group)
         local hex = color and string.format("%02x%02x%02x", math.floor(color.r * 255 + 0.5), math.floor(color.g * 255 + 0.5), math.floor(color.b * 255 + 0.5)) or "aaaaaa"
         text = text .. " |cff" .. hex .. "(" .. table.concat(details, " ") .. ")|r"
     end
-    if not r.ok then text = text .. " [unavailable]" end
+    if not r.ok then text = text .. " [" .. self:L("unavailable") .. "]" end
     return text
 end

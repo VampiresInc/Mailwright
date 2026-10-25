@@ -12,6 +12,7 @@
 ## LoadSavedVariablesFirst: 1
 
 Core.lua
+Locales.lua
 API.lua
 Contacts.lua
 Mailbox.lua

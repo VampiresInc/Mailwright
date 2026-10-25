@@ -3,7 +3,7 @@ local M = ns.M
 
 local function button(parent, text, width, action)
     local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-    b:SetSize(width, 20); b:SetText(text); b:SetScript("OnClick", action)
+    b:SetSize(width, 20); b:SetText(M:L(text)); b:SetScript("OnClick", action)
     return b
 end
 local function arrow(parent, action)
@@ -17,7 +17,7 @@ end
 local function tip(frame, text)
     frame:HookScript("OnEnter", function(self)
         if not GameTooltip then return end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:AddLine(text, 1, 1, 1, true); GameTooltip:Show()
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT"); GameTooltip:AddLine(M:L(text), 1, 1, 1, true); GameTooltip:Show()
     end)
     frame:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
 end
@@ -52,11 +52,11 @@ function M:BuildUI()
     self.collectButton:SetPoint("LEFT", 0, 0); tip(self.collectButton, "Collect selected messages; click again to stop.")
     self.returnButton = button(self.toolbar, "Return", 120, function() M:StartQueue("return", M.selection) end)
     self.returnButton:SetPoint("LEFT", 128, 0); tip(self.returnButton, "Return selected messages to their senders.")
-    self.settingsButton = arrow(MailFrame, function() M:ShowOptionsMenu() end)
+    self.settingsButton = arrow(MailFrame, function(b) M:ShowOptionsMenu(b) end)
     local close = MailFrameCloseButton or MailFrame.CloseButton
     if close then self.settingsButton:SetPoint("RIGHT", close, "LEFT", 0, 0)
     else self.settingsButton:SetPoint("TOPLEFT", MailFrame, "TOPLEFT", 300, -5) end
-    self.openAllOptions = arrow(InboxFrame, function() M:ShowOptionsMenu() end)
+    self.openAllOptions = arrow(InboxFrame, function(b) M:ShowOptionsMenu(b) end)
     self.openAllOptions:SetPoint("LEFT", self.openAll, "RIGHT", 2, 0)
     tip(self.settingsButton, "Mailwright options")
     if SendMailNameEditBox then
@@ -83,16 +83,29 @@ function M:BuildUI()
                 M.db.options.category = name
                 if mouse == "RightButton" then M:ShowAttachMenu() else M:QuickAttach() end
             end)
-            tip(b, "Attach " .. name .. ". Right-click for attachment options.")
+            tip(b, M:F("Attach %s. Right-click for attachment options.", M:L(name)))
             self.attachButtons[i] = b
         end
         self.attachButton = self.attachButtons[1]
     end
     if OpenMailFrame then
-        self.copyButton = button(OpenMailFrame, "Copy", 56, function() M:FocusedMail(function(h) M:CopyMail(h.index) end) end)
-        self.copyButton:SetPoint("TOPRIGHT", -88, -37)
-        self.forwardButton = button(OpenMailFrame, "Forward", 72, function() M:FocusedMail(function(h) M:ForwardMail(h.index) end) end)
-        self.forwardButton:SetPoint("LEFT", self.copyButton, "RIGHT", 4, 0)
+        self.copyButton = button(OpenMailFrame, "C", 24, function() M:FocusedMail(function(h) M:CopyMail(h.index) end) end)
+        self.forwardButton = button(OpenMailFrame, "F", 24, function() M:FocusedMail(function(h) M:ForwardMail(h.index) end) end)
+        tip(self.copyButton, "Copy message")
+        tip(self.forwardButton, "Forward message")
+        local reply = OpenMailReplyButton or OpenMailFrame.ReplyButton
+        if reply then
+            self.forwardButton:SetPoint("RIGHT", reply, "LEFT", -4, 0)
+            self.copyButton:SetPoint("RIGHT", self.forwardButton, "LEFT", -4, 0)
+        else
+            self.copyButton:SetPoint("BOTTOMLEFT", OpenMailFrame, "BOTTOMLEFT", 12, 6)
+            self.forwardButton:SetPoint("LEFT", self.copyButton, "RIGHT", 4, 0)
+        end
+        local level = math.max(OpenMailFrame:GetFrameLevel(), reply and reply:GetFrameLevel() or 0) + 10
+        self.copyButton:SetFrameLevel(level)
+        self.forwardButton:SetFrameLevel(level)
+        self.copyButton:SetHitRectInsets(0, 0, 0, 0)
+        self.forwardButton:SetHitRectInsets(0, 0, 0, 0)
     end
     -- Preserve normal native mailbox paging, including clients whose update globals disappeared.
     InboxFrame:EnableMouseWheel(true)
@@ -171,9 +184,9 @@ function M:RefreshUI()
     end
     self.selectAll:SetChecked(#inbox > 0 and count == #inbox)
     self.selectAll:SetShown(#inbox > 0)
-    self.collectButton:SetText(self.queue and "Stop" or "Open")
+    self.collectButton:SetText(self.queue and self:L("Stop") or self:L("Open"))
     self.returnButton:SetEnabled(not self.queue)
-    self.openAll:SetText(self.queue and "Stop" or "Open All")
+    self.openAll:SetText(self.queue and self:L("Stop") or self:L("Open All"))
     for slot = 1, INBOXITEMS_TO_DISPLAY or 7 do
         local row = _G["MailItem" .. slot]
         local native = row and (row.Button or _G["MailItem" .. slot .. "Button"])
@@ -206,7 +219,7 @@ function M:RefreshUI()
             self.openAll:Hide()
         end
     end
-    if self.nativeOpenAll then self.nativeOpenAll:SetText(self.queue and "Stop" or "Open All") end
+    if self.nativeOpenAll then self.nativeOpenAll:SetText(self.queue and self:L("Stop") or self:L("Open All")) end
 end
 
 function M:HideSubmenus(depth)
@@ -253,7 +266,7 @@ function M:SmallMenu(title, entries, anchor, offset, depth)
     end
     local f = self.menuPanels[depth]
     f.anchor = anchor or self.recipientButton or MailFrame
-    f.title:SetText(title)
+    f.title:SetText(M:L(title))
     f:ClearAllPoints()
     f:SetPoint("TOPLEFT", f.anchor, depth > 1 and "TOPRIGHT" or "BOTTOMLEFT", depth > 1 and -2 or 0, depth > 1 and 12 or -2)
     local visible = {}
@@ -263,10 +276,10 @@ function M:SmallMenu(title, entries, anchor, offset, depth)
     visible[#visible + 1] = {text = "Close", action = function() M.menu:Hide() end}
     local width = 150
     for _, entry in ipairs(visible) do
-        f.title:SetText(entry.text)
+        f.title:SetText(entry.raw and entry.text or M:MenuText(entry.text))
         width = math.max(width, (f.title:GetStringWidth() or 0) + 28)
     end
-    f.title:SetText(title)
+    f.title:SetText(M:L(title))
     width = math.min(560, width)
     local cursor = 28
     for i = 1, math.max(#f.rows, #visible) do
@@ -296,7 +309,7 @@ function M:SmallMenu(title, entries, anchor, offset, depth)
             b.divider:SetShown(not not entry.separator)
             b.caption:SetShown(not entry.separator)
             cursor = cursor + height
-            b:SetText(""); b.caption:SetText(entry.text)
+            b:SetText(""); b.caption:SetText(entry.raw and entry.text or M:MenuText(entry.text))
             b.caption:SetTextColor(entry.disabled and 0.5 or 1, entry.disabled and 0.5 or 1, entry.disabled and 0.5 or 1)
             b.action = entry.action; b.hover = entry.hover; b:SetEnabled(not entry.disabled)
         end
@@ -315,7 +328,7 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
         local contacts = self:Recipients("Contacts")
         for i = 1, math.min(#contacts, 4) do
             local r = contacts[i]
-            entries[#entries + 1] = {text = r.name, disabled = not r.ok,
+            entries[#entries + 1] = {text = r.name, raw = true, disabled = not r.ok,
                 action = function() if M:SetRecipient(r.name) then M.menu:Hide() end end}
         end
         if #contacts > 4 then
@@ -344,16 +357,16 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
                 local chunk = {}
                 for i = first, math.min(first + 24, #records) do chunk[#chunk + 1] = records[i] end
                 local open = function(b) M:ShowContactMenu(group, chunk, b, depth + 1) end
-                entries[#entries + 1] = {text = "Part " .. math.floor((first - 1) / 25 + 1) .. " >", action = open, hover = open}
+                entries[#entries + 1] = {text = self:F("Part %d", math.floor((first - 1) / 25 + 1)) .. " >", action = open, hover = open}
             end
             records = {}
         end
         for _, r in ipairs(records) do
             if self.forever and group == "All alts" and previous ~= (r.ruleset or "Unknown") then
-                previous = r.ruleset or "Unknown"; entries[#entries + 1] = {text = "-- " .. previous .. " --", disabled = true}
+                previous = r.ruleset or "Unknown"; entries[#entries + 1] = {text = "-- " .. self:L(previous) .. " --", disabled = true}
             end
             local name = r.name
-            entries[#entries + 1] = {text = M:RecipientLabel(r, group), disabled = not r.ok,
+            entries[#entries + 1] = {text = M:RecipientLabel(r, group), raw = true, disabled = not r.ok,
                 action = function() if M:SetRecipient(name) then M.menu:Hide() end end}
         end
         if #entries == 0 then entries[#entries + 1] = {text = group == "Friends" and "No mail-ready characters available" or "No entries yet", disabled = true} end
@@ -364,29 +377,30 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
     self:SmallMenu(group or "Contacts", entries, anchor or self.recipientButton, nil, depth)
 end
 
-function M:ShowOptionsMenu()
+function M:ShowOptionsMenu(anchor)
+    self.optionsAnchor = anchor or self.settingsButton
     self.menuGroup = "Options"
-    local entries = {}
+    local entries = {{text = self:L("Language") .. ": " .. self:LanguageName() .. " >", action = function(b) M:ChooseLanguage(b) end}}
     for _, pair in ipairs({{"items", "Collect attachments"}, {"money", "Collect money"}, {"auctions", "Include auction mail"},
         {"express", "Express shortcuts"}, {"autoSend", "Express automatic send"}, {"moneySubject", "Money subject"},
         {"summary", "Money summary"}, {"blockTrades", "Block trades"}, {"showAttachTabs", "Show attachment tabs"}}) do
         local key, text = pair[1], pair[2]
         entries[#entries + 1] = {text = (self.db.options[key] and "[x] " or "[ ] ") .. text, action = function()
             M:SetOption(key, not M.db.options[key])
-            M:ShowOptionsMenu()
+            M:ShowOptionsMenu(M.optionsAnchor)
         end}
     end
-    entries[#entries + 1] = {text = "Free bag slots: " .. self.db.options.reserve .. " (+1; Shift -1)", action = function()
-        M.db.options.reserve = math.max(0, math.min(100, M.db.options.reserve + (IsShiftKeyDown() and -1 or 1))); M:ShowOptionsMenu()
+    entries[#entries + 1] = {text = self:F("Free bag slots: %d (+1; Shift -1)", self.db.options.reserve), action = function()
+        M.db.options.reserve = math.max(0, math.min(100, M.db.options.reserve + (IsShiftKeyDown() and -1 or 1))); M:ShowOptionsMenu(M.optionsAnchor)
     end}
-    entries[#entries + 1] = {text = "Delay: " .. self.db.options.delay .. " sec (cycle)", action = function()
-        local n = M.db.options.delay + 0.25; M.db.options.delay = n > 2 and 0.25 or n; M:ShowOptionsMenu()
+    entries[#entries + 1] = {text = self:F("Delay: %s sec (cycle)", self.db.options.delay), action = function()
+        local n = M.db.options.delay + 0.25; M.db.options.delay = n > 2 and 0.25 or n; M:ShowOptionsMenu(M.optionsAnchor)
     end}
     entries[#entries + 1] = {text = "All settings...", action = function() M.menu:Hide(); M:OpenSettings() end}
     entries[#entries + 1] = {text = "Collect money only", action = function() M.menu:Hide(); M:StartQueue("money") end}
     entries[#entries + 1] = {text = "Quick attach >", action = function() M:ShowAttachMenu() end}
     entries[#entries + 1] = {text = "Saved-data status", action = function() M:Print(M:Status()); M.menu:Hide() end}
-    self:SmallMenu("Mailwright", entries, self.settingsButton)
+    self:SmallMenu("Mailwright", entries, self.optionsAnchor)
 end
 
 function M:ShowAttachMenu()
@@ -394,19 +408,19 @@ function M:ShowAttachMenu()
     local entries = {}
     for _, category in ipairs(self.categories) do
         local name = category
-        entries[#entries + 1] = {text = "Attach " .. name, action = function()
+        entries[#entries + 1] = {text = self:F("Attach %s", self:L(name)), action = function()
             M.db.options.category = name; M.menu:Hide(); M:QuickAttach()
         end}
     end
-    entries[#entries + 1] = {text = "Minimum quality: " .. self.db.options.quality .. " (cycle)", action = function()
+    entries[#entries + 1] = {text = self:F("Minimum quality: %d (cycle)", self.db.options.quality), action = function()
         M.db.options.quality = (M.db.options.quality + 1) % 6; M:ShowAttachMenu()
     end}
-    entries[#entries + 1] = {text = "Bag: " .. (self.db.options.bag == -1 and "All" or self.db.options.bag) .. " (cycle)", action = function()
+    entries[#entries + 1] = {text = self:F("Bag: %s (cycle)", self.db.options.bag == -1 and self:L("All") or self.db.options.bag), action = function()
         M.db.options.bag = M.db.options.bag + 1
         if M.db.options.bag > (NUM_BAG_SLOTS or 4) then M.db.options.bag = -1 end
         M:ShowAttachMenu()
     end}
-    entries[#entries + 1] = {text = "Save To for " .. self.db.options.category, action = function()
+    entries[#entries + 1] = {text = self:F("Save To for %s", self:L(self.db.options.category)), action = function()
         local name, why = M:ValidName(M:Recipient())
         if name then M.db.recipients[M.db.options.category] = name; M:Print("Category recipient saved.")
         else M:Print(why) end
