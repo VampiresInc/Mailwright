@@ -337,7 +337,17 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
         end
         if #contacts > 0 then entries[#entries + 1] = {text = "", separator = true, disabled = true} end
         entries[#entries + 1] = {text = "Add contact", action = function() if M:AddContact(M:Recipient()) then M:ShowContactMenu() end end}
-        entries[#entries + 1] = {text = "Remove contact", action = function() M:RemoveContact(M:Recipient()); M.menu:Hide() end}
+        local remove = function(b)
+            local saved = {}
+            for key, record in pairs(M.db.contacts) do
+                if not record.client or record.client == M:Client() then
+                    saved[#saved + 1] = {name = record.name, key = key}
+                end
+            end
+            table.sort(saved, function(a, b) return a.name < b.name end)
+            M:ShowContactMenu("Remove contact", saved, b, depth + 1)
+        end
+        entries[#entries + 1] = {text = "Remove contact >", action = remove, hover = remove}
         entries[#entries + 1] = {text = "", separator = true, disabled = true}
         for _, value in ipairs({"Recent", "Alts", "All alts", "Friends", "Guild"}) do
             local name = value
@@ -366,8 +376,15 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
                 previous = r.ruleset or "Unknown"; entries[#entries + 1] = {text = "-- " .. self:L(previous) .. " --", disabled = true}
             end
             local name = r.name
-            entries[#entries + 1] = {text = M:RecipientLabel(r, group), raw = true, disabled = not r.ok,
-                action = function() if M:SetRecipient(name) then M.menu:Hide() end end}
+            if group == "Remove contact" then
+                local key = r.key
+                entries[#entries + 1] = {text = name, raw = true, action = function()
+                    M:RemoveSavedContact(key); M.menu:Hide()
+                end}
+            else
+                entries[#entries + 1] = {text = M:RecipientLabel(r, group), raw = true, disabled = not r.ok,
+                    action = function() if M:SetRecipient(name) then M.menu:Hide() end end}
+            end
         end
         if #entries == 0 then entries[#entries + 1] = {text = group == "Friends" and "No mail-ready characters available" or "No entries yet", disabled = true} end
         entries[#entries + 1] = {text = "< Contacts", footer = true, action = function() M:ShowContactMenu() end}

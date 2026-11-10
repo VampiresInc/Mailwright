@@ -25,7 +25,7 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 
 ## Compatibility
 
-**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.7 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.8 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
@@ -56,3 +56,5 @@ Spanish regional choices currently share wording. English is always available.
 The compact C/F buttons mean Copy/Forward; their hover tooltips are translated.
 Item names, spell/class names, mail content, and native game controls follow WoW's
 client language. Community corrections to translation wording are welcome.
+
+To remove a saved contact, open the contacts menu beside To, choose **Remove contact**, then select the saved name. The To field does not need to be filled in. Automatically listed alts, friends, and recent recipients are separate from saved contacts.

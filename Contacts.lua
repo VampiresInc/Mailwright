@@ -73,12 +73,18 @@ function M:AddContact(raw)
     self:Print(self:F("Saved contact: %s", name))
     return true
 end
+function M:RemoveSavedContact(key)
+    local record = self.db.contacts[key]
+    if not record or (record.client and record.client ~= self:Client()) then return false end
+    self.db.contacts[key] = nil
+    self:Print(self:F("Removed contact: %s", record.name))
+    return true
+end
 function M:RemoveContact(raw)
     local name = self:Trim(raw)
-    local key = self:ContactKey(name)
-    if not self.db.contacts[key] then self:Print("Put a saved contact's name in To first."); return end
-    self.db.contacts[key] = nil
-    self:Print(self:F("Removed contact: %s", name))
+    if self:RemoveSavedContact(self:ContactKey(name)) then return true end
+    self:Print("Put a saved contact's name in To first.")
+    return false
 end
 function M:RememberRecipient(raw)
     local name = self:ValidName(raw)

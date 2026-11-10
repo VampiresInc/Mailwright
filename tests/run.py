@@ -583,4 +583,36 @@ for filename in ['Core.lua','API.lua','Mailbox.lua','Sending.lua','Contacts.lua'
             if key in ignore or key=='< Contacts': continue
             assert key in reference, (filename, 'untranslated static text', key)
 print(f'PASS complete coverage and formatting: {len(reference)} strings in 10 non-English locales; localized UI smoke tests')
+lua, compile_fn = runtime()
+check('remove picker deletes the selected saved record without To-field matching', r'''
+local m=Mailwright
+m:Emit('ADDON_LOADED','Mailwright')
+local client=m:Client()
+m.db.contacts={legacy={name='Saved Person',client=client,ruleset='PvP'},
+    other={name='Saved Person',client='OtherClient'}}
+m.db.recent={{name='Recent Person',client=client}}
+SendMailNameEditBox:SetText('Unrelated Person')
+local shown
+m.SmallMenu=function(self,title,entries) shown=entries end
+m.menu={Hide=function() end}
+m:ShowContactMenu()
+local remove
+for _,e in ipairs(shown) do if e.text=='Remove contact >' then remove=e end end
+assert(remove)
+remove.action({})
+assert(shown[1].text=='Saved Person' and not shown[1].disabled)
+shown[1].action()
+assert(not m.db.contacts.legacy and m.db.contacts.other)
+assert(#m.db.recent==1 and m:Recipient()=='Unrelated Person')
+assert(not m:RemoveSavedContact('other'))
+remove.action({})
+assert(shown[1].text=='No entries yet' and shown[1].disabled)
+for i=1,26 do m.db.contacts['key'..i]={name=string.format('Saved Person%02d',i),client=client} end
+remove.action({})
+assert(shown[1].text=='Part 1 >' and shown[2].text=='Part 2 >')
+shown[2].action({})
+assert(shown[1].text=='Saved Person26')
+shown[1].action()
+assert(not m.db.contacts.key26 and m.db.contacts.key25)
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')
