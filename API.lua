@@ -52,7 +52,9 @@ end
 function M:BagItem(bag, slot)
     if C_Container and C_Container.GetContainerItemInfo then
         local i = C_Container.GetContainerItemInfo(bag, slot)
-        if i then return {bag = bag, slot = slot, link = i.hyperlink, id = i.itemID, count = i.stackCount,
+        if i then
+            local link = C_Container.GetContainerItemLink and C_Container.GetContainerItemLink(bag, slot) or i.hyperlink
+            return {bag = bag, slot = slot, link = link, id = i.itemID, count = i.stackCount,
             locked = i.isLocked, bound = i.isBound, quality = i.quality} end
     elseif GetContainerItemInfo then
         local texture, count, locked, quality, readable, lootable, link = GetContainerItemInfo(bag, slot)

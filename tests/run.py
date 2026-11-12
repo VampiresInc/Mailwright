@@ -597,7 +597,7 @@ m.SmallMenu=function(self,title,entries) shown=entries end
 m.menu={Hide=function() end}
 m:ShowContactMenu()
 local remove
-for _,e in ipairs(shown) do if e.text=='Remove contact >' then remove=e end end
+for _,e in ipairs(shown) do if e.text=='Remove contact' then remove=e end end
 assert(remove)
 remove.action({})
 assert(shown[1].text=='Saved Person' and not shown[1].disabled)
@@ -614,5 +614,94 @@ shown[2].action({})
 assert(shown[1].text=='Saved Person26')
 shown[1].action()
 assert(not m.db.contacts.key26 and m.db.contacts.key25)
+''')
+lua, compile_fn = runtime()
+check('contact removal uses clickable root-menu rows', r'''
+local m=Mailwright
+m:Emit('ADDON_LOADED','Mailwright'); m:AddContact('Saved Person')
+m:ShowContactMenu()
+local row
+for _,b in ipairs(m.menu.rows) do if b.caption:GetText()=='Remove contact' then row=b end end
+assert(row and not row.hover)
+row.scripts.OnClick(row)
+assert(m.menu:IsShown() and m.menu.title:GetText()=='Remove contact')
+local saved=m.menu.rows[1]
+assert(saved.caption:GetText()=='Saved Person')
+saved.scripts.OnEnter(saved); saved.scripts.OnClick(saved)
+assert(not m.db.contacts[m:ContactKey('Saved Person')])
+''')
+check('forward eleven identical caged pets without taking an existing cage', r'''
+local m=Mailwright
+resetMail(); free=30
+SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+local pet='|cffffffff|Hbattlepet:162:1:3:150:10:10:0|h[Sinister Squashling]|h|r'
+local bagPet=pet:gsub(':0|h', ':BattlePet-0-ABCD|h')
+C_Container.GetContainerItemLink=function(b,s)
+ local item=bags[b..':'..s]; return item and item.petLink or item and item.hyperlink
+end
+bags['0:1']={hyperlink='item:82800',petLink=bagPet,itemID=82800,stackCount=1,isBound=false}
+inbox={{subject='Pets',items={}}}
+for i=1,11 do inbox[1].items[i]={link='|cnIQ3:|Hitem:82800::::::::80:64:::::::::|h[Pet Cage]|h|r',id=82800,count=1} end
+m:ForwardMail(1); assert(m.queue)
+local handled=0
+for step=1,100 do
+ tick()
+ while handled<#calls do
+  handled=handled+1; local c=calls[handled]
+  if c[1]=='item' then
+   local item=table.remove(inbox[c[2]].items,c[3])
+   local slot=13-#inbox[1].items
+   bags['0:'..slot]={hyperlink='item:82800',petLink=bagPet:gsub(':150:', ':'..(150+slot)..':'),itemID=82800,stackCount=1,isBound=false}
+  elseif c[1]=='attach' then
+   assert(c[3]~=1)
+   sendItems[#sendItems+1]=pet; bags[c[2]..':'..c[3]]=nil
+  elseif c[1]=='send' then error('forward must not send') end
+ end
+ if not m.queue and not m.forwardPlan and not m.attachQueue then break end
+end
+assert(#sendItems==11 and bags['0:1'] and not m.forwardPlan and not m.attachQueue)
+''')
+lua, compile_fn = runtime()
+check('Alts uses server on Retail and ruleset on Forever; All alts preserves both', r'''
+local m=Mailwright
+m:Emit('ADDON_LOADED','Mailwright'); m.forever=false
+WOW_PROJECT_ID=WOW_PROJECT_MAINLINE
+realm='Home Realm'; m:RecordPlayer()
+local client=m:Client()
+m.db.alts={
+ localAlt={name='Local',realm=realm,client=client,guid='local'},
+ remote={name='Remote',realm='Other Realm',client=client,guid='remote'},
+ unknown={name='Unknown',client=client,guid='unknown'}}
+assert(#m:Recipients('Alts')==1 and m:Recipients('Alts')[1].name=='Local')
+assert(#m:Recipients('All alts')==3)
+m.forever=true; realm='Forever PvE'; m:RecordPlayer(); client=m:Client()
+m.db.alts={
+ localAlt={name='Local Person',realm=realm,ruleset='Normal',client=client,guid='local'},
+ remote={name='Remote Person',realm='Other PvE',ruleset='Normal',client=client,guid='remote'},
+ pvp={name='PvP Person',realm=realm,ruleset='PvP',client=client,guid='pvp'},
+ unknown={name='Unknown Person',realm=realm,client=client,guid='unknown'}}
+assert(#m:Recipients('Alts')==2)
+for _,r in ipairs(m:Recipients('Alts')) do assert(r.name=='Local Person' or r.name=='Remote Person') end
+assert(#m:Recipients('All alts')==4)
+''')
+lua, compile_fn = runtime()
+check('forward checks all bag space plus reserve before touching mail', r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+resetMail()
+SendMailSubjectEditBox:SetText(''); SendMailBodyEditBox:SetText('')
+inbox={{subject='Two items',items={{link='item:77'},{link='item:77'}}}}
+itemDetails['item:77']={stack=1}
+for _,space in ipairs({0,1,2}) do
+ free=space; m:ForwardMail(1)
+ assert(not m.queue and not m.forwardPlan and #calls==0 and #inbox[1].items==2)
+ assert(SendMailSubjectEditBox:GetText()=='' and SendMailBodyEditBox:GetText()=='')
+ assert(messages[#messages]:find('3 free bag slots'))
+end
+free=3; m:ForwardMail(1); assert(m.queue and #calls==0)
+resetMail(); free=2; m.db.options.reserve=0
+inbox={{subject='Two items',items={{link='item:77'},{link='item:77'}}}}
+m:ForwardMail(1); assert(m.queue)
+resetMail(); free=0; inbox={{subject='Text only',items={}}}
+m:ForwardMail(1); assert(SendMailSubjectEditBox:GetText()=='Fwd: Text only')
 ''')
 print('All Mailwright checks passed. In-game client testing is still required.')

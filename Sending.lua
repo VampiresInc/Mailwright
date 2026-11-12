@@ -1,6 +1,9 @@
 local _, ns = ...
 local M = ns.M
 local function forwardItemKey(item)
+    -- Inbox links expose generic Pet Cage items; bag links expose battle pets.
+    -- Match the cage ID and use the occupied-slot snapshot/counts for identity.
+    if item.link and item.link:find("battlepet:", 1, true) then return "82800" end
     return item.link and item.link:match("item:(%d+)") or item.id and tostring(item.id)
 end
 function M:MailBodyEditor()
@@ -150,14 +153,23 @@ function M:ForwardMail(index)
         self:Print("Clear your existing draft before forwarding."); return
     end
     if h.count > (ATTACHMENTS_MAX_SEND or 12) then self:Print("Too many attachments to forward in one draft."); return end
+    if h.count > 0 then
+        local available, reserve = self:FreeSlots(), self.db.options.reserve
+        local needed = h.count + reserve
+        if available < needed then
+            self:Print(self:F("Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again.", needed, reserve, available))
+            return
+        end
+    end
     local wanted, bags = {}, self:BagItems()
     for _, item in ipairs(h.items) do
         local d = self:ItemDetails(item.link)
         local key = forwardItemKey(item)
-        if not key or not d or d.stack ~= 1 or wanted[key] or item.count ~= 1 then
+        local pet = key == "82800"
+        if not key or (not pet and (not d or d.stack ~= 1)) or item.count ~= 1 then
             self:Print("Automatic forwarding requires cached, distinct, non-stackable items. Collect other attachments and attach them manually."); return
         end
-        wanted[key] = true
+        wanted[key] = (wanted[key] or 0) + 1
     end
     local occupied, existing = {}, {}
     for _, owned in ipairs(bags) do
@@ -204,15 +216,15 @@ function M:TickForward()
             counts[key] = (counts[key] or 0) + 1
             items[#items + 1] = item
             if not item.link or item.locked then ready = false end
-            if item.bound or item.count ~= 1 then counts[key] = 2 end
+            if item.bound or item.count ~= 1 then counts[key] = math.huge end
         end
     end
-    for key in pairs(plan.wanted) do
-        if (counts[key] or 0) > 1 then
+    for key, expected in pairs(plan.wanted) do
+        if (counts[key] or 0) > expected then
             self.forwardPlan = nil
             self:Print("Forward draft created; attach the collected items manually because inventory identification was ambiguous."); return
         end
-        if counts[key] ~= 1 then ready = false end
+        if counts[key] ~= expected then ready = false end
     end
     if ready then
         self.forwardPlan = nil

@@ -266,6 +266,7 @@ function M:SmallMenu(title, entries, anchor, offset, depth)
     end
     local f = self.menuPanels[depth]
     f.anchor = anchor or self.recipientButton or MailFrame
+    f:SetFrameLevel(100 + depth * 10)
     f.title:SetText(M:L(title))
     f:ClearAllPoints()
     f:SetPoint("TOPLEFT", f.anchor, depth > 1 and "TOPRIGHT" or "BOTTOMLEFT", depth > 1 and -2 or 0, depth > 1 and 12 or -2)
@@ -345,9 +346,9 @@ function M:ShowContactMenu(group, suggestions, anchor, depth)
                 end
             end
             table.sort(saved, function(a, b) return a.name < b.name end)
-            M:ShowContactMenu("Remove contact", saved, b, depth + 1)
+            M:ShowContactMenu("Remove contact", saved, M.recipientButton, 1)
         end
-        entries[#entries + 1] = {text = "Remove contact >", action = remove, hover = remove}
+        entries[#entries + 1] = {text = "Remove contact", action = remove}
         entries[#entries + 1] = {text = "", separator = true, disabled = true}
         for _, value in ipairs({"Recent", "Alts", "All alts", "Friends", "Guild"}) do
             local name = value

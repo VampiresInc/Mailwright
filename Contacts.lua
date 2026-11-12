@@ -170,7 +170,12 @@ function M:Recipients(group)
     elseif group == "Alts" or group == "All alts" then
         for _, r in pairs(self.db.alts) do
             if not self.player or r.guid ~= self.player.guid then
-                if group == "All alts" or self:Compatible(r) then add(r, true) end
+                -- Retail/Classic group by server; Forever groups by ruleset.
+                local sameRealm = r.realm and r.realm ~= "" and
+                    string.lower(r.realm:gsub("%s", "")) == string.lower(self:Realm():gsub("%s", ""))
+                local inGroup = (self.forever and r.ruleset == self:Ruleset()) or (not self.forever and sameRealm)
+                if group == "All alts" or (inGroup and self:Compatible(r)
+                    and self:CanRecipient(self:AltRecipient(r))) then add(r, true) end
             end
         end
     elseif group == "Friends" then
