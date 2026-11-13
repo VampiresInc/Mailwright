@@ -155,7 +155,7 @@ function M:RegisterSettings()
     local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 0, -72); scroll:SetPoint("BOTTOMRIGHT", -28, 8)
     local content = CreateFrame("Frame", nil, scroll)
-    content:SetSize(560, 610); scroll:SetScrollChild(content)
+    content:SetSize(560, 660); scroll:SetScrollChild(content)
     local controls = {}
     local language = button(content, "", 16, -4, 350, function(b) M:ChooseLanguage(b) end)
     button(content, "Reload UI", 380, -4, 150, function() if ReloadUI then ReloadUI() end end)
@@ -163,7 +163,7 @@ function M:RegisterSettings()
     local y = -70
     for _, pair in ipairs({{"showAttachTabs", "Show attachment tabs beside Send Mail"},
         {"items", "Collect attachments"}, {"money", "Collect money"}, {"auctions", "Include auction mail"},
-        {"express", "Express shortcuts"}, {"autoSend", "Express automatic send (sends mail immediately)"},
+        {"rememberLastRecipient", "Remember last recipient"}, {"express", "Express shortcuts"}, {"autoSend", "Express automatic send (sends mail immediately)"},
         {"moneySubject", "Money subject"}, {"summary", "Money summary"}, {"blockTrades", "Block trades while the mailbox is open"}}) do
         local key = pair[1]
         controls[key] = checkbox(content, pair[2], 16, y, self.db.options[key], function(value) M:SetOption(key, value) end)

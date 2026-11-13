@@ -2,11 +2,11 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.9"
+M.addon, M.version = addon, "0.2.10"
 M.listeners, M.selection = {}, {}
 M.defaults = {language = "auto", reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
-    showAttachTabs = true, items = true, money = true, quality = 0, bag = -1, category = "All"}
+    rememberLastRecipient = true, showAttachTabs = true, items = true, money = true, quality = 0, bag = -1, category = "All"}
 function M:Print(s)
     if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffMailwright:|r " .. tostring(self:L(s))) end
 end
@@ -24,7 +24,7 @@ function M:Initialize()
     self.loadedData = type(MailwrightDB) == "table"
     if not self.loadedData then MailwrightDB = {} end
     local db = MailwrightDB
-    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients"}) do
+    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients", "lastRecipients"}) do
         if type(db[key]) ~= "table" then db[key] = {} end
     end
     for k, v in pairs(self.defaults) do if type(db.options[k]) ~= type(v) then db.options[k] = v end end
@@ -66,6 +66,7 @@ function M:SetMailOpen(open)
         end
         self:ShowUI()
         self:InstallSendHooks()
+        self.restoreRecipientPending = true
     else
         self:StopQueue("Mailbox closed.", true)
         self.attachQueue, self.forwardPlan = nil, nil
@@ -114,6 +115,10 @@ M:SetScript("OnUpdate", function(self, delta)
     if self.mailOpen and not self.conflict then
         if not self.ui then self:ShowUI()
         elseif InboxFrame and self.uiPage ~= InboxFrame.pageNum then self:RefreshUI() end
+        if self.restoreRecipientPending then
+            self.restoreRecipientPending = nil
+            self:RestoreLastRecipient()
+        end
         self:TickQueue(); self:TickAttachments(); self:UpdateMoneySubject()
     end
 end)

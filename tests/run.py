@@ -704,4 +704,26 @@ m:ForwardMail(1); assert(m.queue)
 resetMail(); free=0; inbox={{subject='Text only',items={}}}
 m:ForwardMail(1); assert(SendMailSubjectEditBox:GetText()=='Fwd: Text only')
 ''')
+lua, compile_fn = runtime()
+check('last successful recipient persists per character and respects edits, failures and opt-out', r'''
+local m=Mailwright
+m:Emit('ADDON_LOADED','Mailwright'); m:SetMailOpen(true)
+SendMail('First Person','Test',''); m:Emit('MAIL_SEND_SUCCESS')
+SendMailNameEditBox:SetText(''); m:RestoreLastRecipient()
+assert(m:Recipient()=='First Person')
+SendMailNameEditBox:SetText('Chosen Person'); m:RestoreLastRecipient()
+assert(m:Recipient()=='Chosen Person')
+SendMail('Failed Person','Test',''); m:Emit('MAIL_FAILED')
+SendMailNameEditBox:SetText(''); m:RestoreLastRecipient()
+assert(m:Recipient()=='First Person')
+m.db.options.rememberLastRecipient=false; SendMailNameEditBox:SetText(''); m:RestoreLastRecipient()
+assert(m:Recipient()=='')
+m.db.options.rememberLastRecipient=true
+local oldGuid=playerGuid; playerGuid='DifferentCharacter'; m:RestoreLastRecipient(); assert(m:Recipient()=='')
+playerGuid=oldGuid
+local oldRealm=realm; realm='Classic Beta PvP 2'; m:RestoreLastRecipient(); assert(m:Recipient()=='')
+realm=oldRealm
+m.db=nil; m:Initialize(); m:RestoreLastRecipient(); assert(m:Recipient()=='First Person')
+SendMailNameEditBox:SetText(''); m.mailOpen=false; m:RestoreLastRecipient(); assert(m:Recipient()=='')
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')

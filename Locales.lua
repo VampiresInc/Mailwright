@@ -3,6 +3,7 @@ local M = ns.M
 local translations = {}
 M.translations = translations
 translations.deDE = {
+    ["Remember last recipient"] = "Letzten Empfänger merken",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Zum Weiterleiten werden %d freie Taschenplätze benötigt (davon %d reserviert); verfügbar: %d. Schaffe Platz und versuche es erneut.",
     ["Alliance"] = "Allianz",
     ["Horde"] = "Horde",
@@ -161,6 +162,7 @@ translations.deDE = {
     ["Stop attaching"] = "Anhängen stoppen",
 }
 translations.frFR = {
+    ["Remember last recipient"] = "Mémoriser le dernier destinataire",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Le transfert nécessite %d places libres (dont %d réservées) ; vous en avez %d. Libérez de la place et réessayez.",
     ["Alliance"] = "Alliance",
     ["Horde"] = "Horde",
@@ -319,6 +321,7 @@ translations.frFR = {
     ["Stop attaching"] = "Arrêter l’ajout",
 }
 translations.esES = {
+    ["Remember last recipient"] = "Recordar el último destinatario",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Reenviar requiere %d espacios libres (incluidos %d reservados); tienes %d. Haz espacio e inténtalo de nuevo.",
     ["Alliance"] = "Alianza",
     ["Horde"] = "Horda",
@@ -477,6 +480,7 @@ translations.esES = {
     ["Stop attaching"] = "Dejar de adjuntar",
 }
 translations.itIT = {
+    ["Remember last recipient"] = "Ricorda l’ultimo destinatario",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Per inoltrare servono %d spazi liberi (inclusi %d riservati); ne hai %d. Libera spazio e riprova.",
     ["Alliance"] = "Alleanza",
     ["Horde"] = "Orda",
@@ -635,6 +639,7 @@ translations.itIT = {
     ["Stop attaching"] = "Interrompi allegati",
 }
 translations.ptBR = {
+    ["Remember last recipient"] = "Lembrar o último destinatário",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Encaminhar requer %d espaços livres (incluindo %d reservados); você tem %d. Libere espaço e tente novamente.",
     ["Alliance"] = "Aliança",
     ["Horde"] = "Horda",
@@ -793,6 +798,7 @@ translations.ptBR = {
     ["Stop attaching"] = "Parar de anexar",
 }
 translations.ruRU = {
+    ["Remember last recipient"] = "Запоминать последнего получателя",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "Для пересылки нужно %d свободных ячеек (включая резерв: %d); доступно: %d. Освободите место и повторите попытку.",
     ["Alliance"] = "Альянс",
     ["Horde"] = "Орда",
@@ -951,6 +957,7 @@ translations.ruRU = {
     ["Stop attaching"] = "Остановить вложения",
 }
 translations.koKR = {
+    ["Remember last recipient"] = "마지막 받는 사람 기억",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "전달하려면 가방 빈칸 %d개(예약 %d개 포함)가 필요합니다. 현재 %d개입니다. 공간을 확보한 뒤 다시 시도하세요.",
     ["Alliance"] = "얼라이언스",
     ["Horde"] = "호드",
@@ -1109,6 +1116,7 @@ translations.koKR = {
     ["Stop attaching"] = "첨부 중지",
 }
 translations.zhCN = {
+    ["Remember last recipient"] = "记住上次收件人",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "转寄需要%d个背包空格（包括%d个预留空格）；当前有%d个。请腾出空间后重试。",
     ["Alliance"] = "联盟",
     ["Horde"] = "部落",
@@ -1267,6 +1275,7 @@ translations.zhCN = {
     ["Stop attaching"] = "停止添加附件",
 }
 translations.zhTW = {
+    ["Remember last recipient"] = "記住上次收件人",
     ["Forwarding needs %d free bag slots (including %d reserved); you have %d. Make room and try again."] = "轉寄需要%d個背包空格（包括%d個預留空格）；目前有%d個。請騰出空間後重試。",
     ["Alliance"] = "聯盟",
     ["Horde"] = "部落",

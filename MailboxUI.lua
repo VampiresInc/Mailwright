@@ -400,7 +400,7 @@ function M:ShowOptionsMenu(anchor)
     self.menuGroup = "Options"
     local entries = {{text = self:L("Language") .. ": " .. self:LanguageName() .. " >", action = function(b) M:ChooseLanguage(b) end}}
     for _, pair in ipairs({{"items", "Collect attachments"}, {"money", "Collect money"}, {"auctions", "Include auction mail"},
-        {"express", "Express shortcuts"}, {"autoSend", "Express automatic send"}, {"moneySubject", "Money subject"},
+        {"rememberLastRecipient", "Remember last recipient"}, {"express", "Express shortcuts"}, {"autoSend", "Express automatic send"}, {"moneySubject", "Money subject"},
         {"summary", "Money summary"}, {"blockTrades", "Block trades"}, {"showAttachTabs", "Show attachment tabs"}}) do
         local key, text = pair[1], pair[2]
         entries[#entries + 1] = {text = (self.db.options[key] and "[x] " or "[ ] ") .. text, action = function()

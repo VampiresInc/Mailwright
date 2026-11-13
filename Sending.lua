@@ -99,7 +99,23 @@ function M:ExpressBag(bag, slot)
     end
     self:StartAttach(items, self.db.options.autoSend)
 end
+function M:LastRecipientKey()
+    local guid = UnitGUID and UnitGUID("player")
+    if not guid then return end
+    return self:Client() .. "\031" .. guid .. "\031" .. (self.forever and self:Ruleset() or self:Realm())
+end
+function M:RestoreLastRecipient()
+    if not self.db or not self.db.options.rememberLastRecipient or not self.mailOpen or self.conflict
+        or not SendMailNameEditBox or self:Recipient() ~= "" then return end
+    local key = self:LastRecipientKey()
+    local name = key and self.db.lastRecipients[key]
+    if type(name) == "string" and self:CanRecipient(name) then self:SetRecipient(name) end
+end
 function M:InstallSendHooks()
+    if SendMailFrame and not self.sendShowHook then
+        self.sendShowHook = true
+        SendMailFrame:HookScript("OnShow", function() M.restoreRecipientPending = true end)
+    end
     if not self.sendHook and type(SendMail) == "function" then
         self.sendHook = true
         hooksecurefunc("SendMail", function(name) if M.db then M.pendingRecipient = name end end)
@@ -123,7 +139,14 @@ function M:InstallSendHooks()
     end
 end
 M:Listen("MAIL_SEND_SUCCESS", function(self)
-    if self.pendingRecipient then self:RememberRecipient(self.pendingRecipient); self.pendingRecipient = nil end
+    if self.pendingRecipient then
+        local name = self:ValidName(self.pendingRecipient)
+        self:RememberRecipient(self.pendingRecipient)
+        local key = self:LastRecipientKey()
+        if name and key then self.db.lastRecipients[key] = name end
+        self.pendingRecipient = nil
+        self.restoreRecipientPending = true
+    end
 end)
 M:Listen("MAIL_FAILED", function(self) self.pendingRecipient = nil end)
 function M:CopyMail(index)
