@@ -109,7 +109,8 @@ function M:RestoreLastRecipient()
         or not SendMailNameEditBox or self:Recipient() ~= "" then return end
     local key = self:LastRecipientKey()
     local name = key and self.db.lastRecipients[key]
-    if type(name) == "string" and self:CanRecipient(name) then self:SetRecipient(name) end
+    -- Restoring text must not navigate to Send Mail like an explicit contact click.
+    if type(name) == "string" and self:CanRecipient(name) then SendMailNameEditBox:SetText(name) end
 end
 function M:InstallSendHooks()
     if SendMailFrame and not self.sendShowHook then

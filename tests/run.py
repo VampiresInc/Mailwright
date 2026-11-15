@@ -726,4 +726,20 @@ realm=oldRealm
 m.db=nil; m:Initialize(); m:RestoreLastRecipient(); assert(m:Recipient()=='First Person')
 SendMailNameEditBox:SetText(''); m.mailOpen=false; m:RestoreLastRecipient(); assert(m:Recipient()=='')
 ''')
+lua, compile_fn = runtime()
+check('remembered recipient never changes the selected mailbox tab', r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+local selected=1
+MailFrameTab_OnClick=function(_,tab) selected=tab end
+m.db.lastRecipients[m:LastRecipientKey()]='Saved Person'
+m:SetMailOpen(true)
+assert(m.restoreRecipientPending)
+m:RestoreLastRecipient()
+assert(selected==1 and m:Recipient()=='Saved Person')
+SendMailNameEditBox:SetText(''); selected=2; m:RestoreLastRecipient()
+assert(selected==2 and m:Recipient()=='Saved Person')
+SendMailNameEditBox:SetText('Typed Person'); selected=1; m:RestoreLastRecipient()
+assert(selected==1 and m:Recipient()=='Typed Person')
+m:SetRecipient('Selected Person'); assert(selected==2)
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')
