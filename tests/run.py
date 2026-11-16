@@ -742,4 +742,21 @@ SendMailNameEditBox:SetText('Typed Person'); selected=1; m:RestoreLastRecipient(
 assert(selected==1 and m:Recipient()=='Typed Person')
 m:SetRecipient('Selected Person'); assert(selected==2)
 ''')
+lua, compile_fn = runtime()
+check('Battle.net character identities persist offline and across saved-data reload', r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m.forever=false
+WOW_PROJECT_ID=WOW_PROJECT_MAINLINE
+local online=true
+BNGetNumFriends=function() return 1 end
+C_BattleNet={GetFriendNumGameAccounts=function() return online and 1 or 0 end,
+ GetFriendGameAccountInfo=function() return {clientProgram='WoW',isOnline=true,
+ isInCurrentRegion=true,wowProjectID=WOW_PROJECT_ID,characterName='Friend',realmName='OtherRealm'} end}
+m.mailOpen=false; m:Emit('BN_FRIEND_ACCOUNT_ONLINE')
+assert(#m:Recipients('Friends')==1)
+online=false; m:Emit('BN_FRIEND_ACCOUNT_OFFLINE')
+assert(#m:Recipients('Friends')==1 and m:Recipients('Friends')[1].name=='Friend-OtherRealm')
+m.db=nil; m:Initialize(); m.forever=false
+assert(#m:Recipients('Friends')==1)
+m.forever=true; assert(#m:Recipients('Friends')==0)
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')

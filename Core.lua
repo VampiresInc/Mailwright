@@ -2,7 +2,7 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.11"
+M.addon, M.version = addon, "0.2.12"
 M.listeners, M.selection = {}, {}
 M.defaults = {language = "auto", reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
@@ -24,7 +24,7 @@ function M:Initialize()
     self.loadedData = type(MailwrightDB) == "table"
     if not self.loadedData then MailwrightDB = {} end
     local db = MailwrightDB
-    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients", "lastRecipients"}) do
+    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients", "lastRecipients", "friendCharacters"}) do
         if type(db[key]) ~= "table" then db[key] = {} end
     end
     for k, v in pairs(self.defaults) do if type(db.options[k]) ~= type(v) then db.options[k] = v end end

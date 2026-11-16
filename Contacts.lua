@@ -202,12 +202,18 @@ function M:Recipients(group)
                             if self.forever then record.ruleset = self:Ruleset(r.realmName) end
                             -- Forever uses the mainline project ID too; full-name validation
                             -- and the ruleset record prevent mixing its recipients with Retail.
+                            record.client = self:Client()
+                            local key = record.client .. "\031" .. string.lower(record.name) .. "\031" .. record.realm
+                            self.db.friendCharacters[key] = record
                             add(record, true)
                         end
                     end
                 end
             end
         end
+        -- Battle.net stops exposing the character when its player logs off.
+        -- Keep previously observed mail identities, scoped to this WoW client.
+        for _, record in pairs(self.db.friendCharacters) do add(record, true) end
     elseif group == "Guild" then
         for i = 1, GetNumGuildMembers and GetNumGuildMembers() or 0 do
             local name, rank, rankIndex, level, className, zone, note, officerNote, online, status, class = GetGuildRosterInfo(i)
@@ -228,9 +234,11 @@ function M:RequestFriends()
     if request then pcall(request) end
 end
 local function friendsChanged(self)
+    if self.db then self:Recipients("Friends") end
     if not self.db or not self.mailOpen or not self.menu or not self.menu:IsShown() then return end
     if self.menuGroup == nil or self.menuGroup == "Friends" then self:ShowContactMenu(self.menuGroup) end
 end
+M:Listen("PLAYER_LOGIN", friendsChanged)
 M:Listen("FRIENDLIST_UPDATE", friendsChanged)
 M:Listen("BN_FRIEND_INFO_CHANGED", friendsChanged)
 M:Listen("BN_FRIEND_ACCOUNT_ONLINE", friendsChanged)

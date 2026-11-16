@@ -1,10 +1,13 @@
-# Mailwright 0.2.11 - Preserve Inbox when remembering recipients
+# Mailwright 0.2.12 - Remember offline friend characters
 
-- Fix Remember last recipient switching the mailbox to Send Mail when it opens.
-- Restore only the empty To field without changing the selected mailbox tab.
-- Preserve explicit contact selection behavior and names already entered.
+- Keep previously observed Battle.net WoW characters in the Friends menu after they log off.
+- Save remembered character identities across reloads and logins, separate by WoW client.
+- Capture online character updates even while the mailbox is closed.
+- Preserve existing compatibility checks and keep remembered friends separate from manually saved contacts.
 
-Confirmed working in-game on Forever by Arametheus. Automated regression tests passed, including Inbox/Send Mail tab preservation and manual contact selection.
+Only characters actually observed online can be remembered. Remembered names currently remain even if the Battle.net friendship is later removed.
+
+Confirmed working in-game on Forever by Arametheus. Automated regression tests passed, including offline retention, saved-data reload, and client isolation.
 
 Packages: Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4,
 Burning Crusade Anniversary 2.5.6, and Forever 1.60.1.
