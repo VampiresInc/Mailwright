@@ -2,7 +2,7 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.12"
+M.addon, M.version = addon, "0.2.13"
 M.listeners, M.selection = {}, {}
 M.defaults = {language = "auto", reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
@@ -119,6 +119,6 @@ M:SetScript("OnUpdate", function(self, delta)
             self.restoreRecipientPending = nil
             self:RestoreLastRecipient()
         end
-        self:TickQueue(); self:TickAttachments(); self:UpdateMoneySubject()
+        self:TickQueue(); self:TickAttachments(); self:UpdateItemSubject(); self:UpdateMoneySubject()
     end
 end)

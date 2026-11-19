@@ -25,7 +25,7 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 
 ## Compatibility
 
-**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.12 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.13 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
@@ -66,3 +66,5 @@ Alts lists characters on your current server in Retail and Classic, or your curr
 **Remember last recipient** is enabled by default. After a successful send, Mailwright remembers the recipient per character and restores it when the To field is empty after sending or reopening the mailbox. Existing typed recipients are preserved. Disable this in Mailwright settings or the mailbox options menu.
 
 Battle.net characters seen online are remembered in the Friends menu after they log off and across reloads. Records stay separate by WoW client. Characters never seen online cannot be discovered this way. Remembered names currently remain even if the Battle.net friendship is later removed.
+
+Attaching an item fills an empty mail subject with its localized name. Custom subjects and forwarding subjects are preserved.

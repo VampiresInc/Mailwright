@@ -71,12 +71,27 @@ function M:SendDraft()
     if not ok then self:Print(why); return end
     if SendMailFrame and SendMailFrame.sendMode == "cod" then self:Print("Automatic sending is disabled for COD drafts."); return end
     if GetSendMailMoney and GetSendMailMoney() > 0 then self:Print("Send drafts containing money with the game's Send button."); return end
+    self:UpdateItemSubject()
     self:UpdateMoneySubject()
     local subject = SendMailSubjectEditBox and SendMailSubjectEditBox:GetText() or ""
     if subject == "" then self:Print("Enter a subject before sending."); return end
     local editor = self:MailBodyEditor()
     if not editor then self:Print("Mail editor is not ready. Reopen the mailbox and try again."); return end
     SendMail(recipient, subject, editor:GetText() or "")
+end
+-- Use the localized attachment name supplied by the client. This also covers
+-- ordinary drag/right-click attachments when Blizzard leaves the subject blank.
+function M:UpdateItemSubject()
+    local box = SendMailSubjectEditBox
+    if not self.mailOpen or self.conflict or not box or not GetSendMailItem then return end
+    if box:GetText() ~= "" or (box.HasFocus and box:HasFocus()) then return end
+    for slot = 1, (ATTACHMENTS_MAX_SEND or 12) do
+        local name = GetSendMailItem(slot)
+        if type(name) == "string" and name ~= "" then
+            box:SetText(name)
+            return
+        end
+    end
 end
 function M:UpdateMoneySubject()
     if not self.db.options.moneySubject or not SendMailSubjectEditBox then return end

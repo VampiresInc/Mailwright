@@ -759,4 +759,23 @@ m.db=nil; m:Initialize(); m.forever=false
 assert(#m:Recipients('Friends')==1)
 m.forever=true; assert(#m:Recipients('Friends')==0)
 ''')
+lua, compile_fn = runtime()
+check('attachment subjects fill empty drafts without overwriting custom or forwarded text', r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m.mailOpen=true
+sendItems={}; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='')
+sendItems={[2]='Localized recipe',[3]='Second item'}
+m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='Localized recipe')
+for _,subject in ipairs({'Custom subject','Fwd: Auction won',' '}) do
+ SendMailSubjectEditBox:SetText(subject); m:UpdateItemSubject()
+ assert(SendMailSubjectEditBox:GetText()==subject)
+end
+SendMailSubjectEditBox:SetText(''); SendMailSubjectEditBox.HasFocus=function() return true end
+m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='')
+SendMailSubjectEditBox.HasFocus=function() return false end
+m.conflict=true; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='')
+m.conflict=false; m.mailOpen=false; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='')
+m.mailOpen=true; sendItems={}; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='')
+sendItems={'Cached later'}; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='Cached later')
+assert(#calls==0)
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')
