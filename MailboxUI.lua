@@ -22,6 +22,31 @@ local function tip(frame, text)
     frame:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
 end
 
+-- Reserve TSM's mailbox-switch space only when the addon is actually loaded.
+function M:LayoutSettingsButton()
+    local b = self.settingsButton
+    if not b or not MailFrame then return end
+    local loaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
+    local tsm = loaded and loaded("TradeSkillMaster")
+    local close = MailFrameCloseButton or MailFrame.CloseButton
+    local level = MailFrame:GetFrameLevel() + 10
+    -- Native tab artwork and skins can also sit above the mailbox parent.
+    -- Keep options visible on both tabs, with or without TSM.
+    if close then level = math.max(level, close:GetFrameLevel() + 1) end
+    if MailFrame.GetChildren then
+        for _, child in ipairs({MailFrame:GetChildren()}) do
+            if child ~= b then level = math.max(level, child:GetFrameLevel() + 1) end
+        end
+    end
+    b:SetFrameLevel(level)
+    b:ClearAllPoints()
+    if close then b:SetPoint("RIGHT", close, "LEFT", tsm and -65 or 0, 0)
+    else b:SetPoint("TOPLEFT", MailFrame, "TOPLEFT", tsm and 235 or 300, -5) end
+end
+M:Listen("ADDON_LOADED", function(self, name)
+    if name == "TradeSkillMaster" then self.settingsLayoutPending = true end
+end)
+
 function M:BuildUI()
     if not MailFrame or not InboxFrame then return end
     -- An invisible owner for controls, not a second mailbox window.
@@ -54,8 +79,9 @@ function M:BuildUI()
     self.returnButton:SetPoint("LEFT", 128, 0); tip(self.returnButton, "Return selected messages to their senders.")
     self.settingsButton = arrow(MailFrame, function(b) M:ShowOptionsMenu(b) end)
     local close = MailFrameCloseButton or MailFrame.CloseButton
-    if close then self.settingsButton:SetPoint("RIGHT", close, "LEFT", 0, 0)
-    else self.settingsButton:SetPoint("TOPLEFT", MailFrame, "TOPLEFT", 300, -5) end
+    self:LayoutSettingsButton()
+    MailFrame:HookScript("OnShow", function() M.settingsLayoutPending = true end)
+    self.settingsLayoutPending = true
     self.openAllOptions = arrow(InboxFrame, function(b) M:ShowOptionsMenu(b) end)
     self.openAllOptions:SetPoint("LEFT", self.openAll, "RIGHT", 2, 0)
     tip(self.settingsButton, "Mailwright options")
@@ -174,6 +200,7 @@ function M:InstallInboxRow(slot, row, native)
 end
 
 function M:RefreshUI()
+    self:LayoutSettingsButton()
     self:RefreshAttachmentTabs()
     if not self.ui then return end
     self.uiPage = InboxFrame.pageNum

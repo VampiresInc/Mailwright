@@ -778,4 +778,28 @@ m.mailOpen=true; sendItems={}; m:UpdateItemSubject(); assert(SendMailSubjectEdit
 sendItems={'Cached later'}; m:UpdateItemSubject(); assert(SendMailSubjectEditBox:GetText()=='Cached later')
 assert(#calls==0)
 ''')
+lua, compile_fn = runtime()
+check('TSM layout is conditional, follows sibling levels and does not grow on refresh', r'''
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m:BuildUI()
+local b=m.settingsButton
+b.SetPoint=function(self,...) self.anchor={...} end
+b.SetFrameLevel=function(self,v) self.level=v end
+b.GetFrameLevel=function(self) return self.level or 11 end
+local close={GetFrameLevel=function() return 500 end}
+MailFrameCloseButton=close
+local overlay={GetFrameLevel=function() return 640 end}
+MailFrame.GetChildren=function() return b,close,overlay end
+local loaded=false
+C_AddOns={IsAddOnLoaded=function(name) assert(name=='TradeSkillMaster'); return loaded end}
+m:LayoutSettingsButton(); assert(b.anchor[4]==0 and b.level==641)
+loaded=true; m:Emit('ADDON_LOADED','TradeSkillMaster'); assert(m.settingsLayoutPending)
+m:LayoutSettingsButton(); assert(b.anchor[2]==close and b.anchor[4]==-65 and b.level==641)
+for i=1,10 do m:LayoutSettingsButton(); assert(b.level==641) end
+C_AddOns=nil; IsAddOnLoaded=function() return true end
+m:LayoutSettingsButton(); assert(b.anchor[4]==-65)
+MailFrameCloseButton=nil; MailFrame.CloseButton=nil
+m:LayoutSettingsButton(); assert(b.anchor[1]=='TOPLEFT' and b.anchor[4]==235)
+IsAddOnLoaded=function() return false end
+m:LayoutSettingsButton(); assert(b.anchor[4]==300 and b.level==641)
+''')
 print('All Mailwright checks passed. In-game client testing is still required.')
