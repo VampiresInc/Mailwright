@@ -156,7 +156,15 @@ function M:Recipients(group)
         if r.client and r.client ~= M:Client() then return end
         local name = alt and M:AltRecipient(r) or r.name
         if not name then return end
-        local ok, why = M:Compatible(r)
+        local ok, why
+        if group == "Friends" then
+            -- Cached friend metadata is advisory. The mail server validates delivery.
+            local valid
+            valid, why = M:ValidName(name)
+            ok = valid ~= nil
+        else
+            ok, why = M:Compatible(r)
+        end
         local key = name .. "\031" .. (r.ruleset or "")
         if not seen[key] then
             seen[key] = true

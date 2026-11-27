@@ -1,10 +1,7 @@
-# Mailwright 0.2.16 - Controller UI recipient selection and autofill
+# Mailwright 0.2.17 - Offline friends remain selectable
 
-- Recipient menus fill To on the open Send Mail tab while preserving controller focus.
-- Remember last recipient works again in Controller UI. Autofill waits until Send Mail is visible and leaves an existing recipient untouched.
+The Friends menu now keeps valid addresses selectable even when cached realm, faction, or ruleset information differs. Blizzard determines whether the mail can be delivered. Other recipient menus retain their compatibility checks.
 
-Thanks to **fitsimmons6**, developer of [Controller Companion](https://www.curseforge.com/wow/addons/controllercompanion), for the recipient picker approach that inspired this fix.
-
-Verified in-game on Forever by Arametheus. Automated regression tests cover both Controller UI and the normal interface.
+Verified in-game on Forever. Automated tests cover selecting an offline friend with a cached ruleset mismatch.
 
 Packages: Retail, Classic Era, Mists Classic, Burning Crusade Anniversary, and Forever.

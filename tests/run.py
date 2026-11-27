@@ -935,4 +935,14 @@ SendMailFrame:Show()
 assert(m:SetRecipient('Picked Person') and m:Recipient()=='Picked Person')
 assert(#calls==0)
 """)
+lua, compile_fn = runtime()
+check('offline friends are selectable despite cached ruleset differences', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+m.db.friendCharacters.test={name='Offline Friend', client=m:Client(), ruleset='Hardcore'}
+m.db.friendCharacters.other={name='Other Friend', client=m:Client(), ruleset='Hardcore'}
+local friends=m:Recipients('Friends')
+assert(#friends==2 and friends[1].name=='Offline Friend' and friends[1].ok)
+assert(friends[2].ok)
+assert(m:SetRecipient(friends[1].name) and m:Recipient()=='Offline Friend')
+""")
 print('All Mailwright checks passed. In-game client testing is still required.')
