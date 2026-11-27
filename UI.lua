@@ -185,10 +185,6 @@ function M:RegisterSettings()
         {"moneySubject", "Money subject"}, {"summary", "Money summary"}, {"blockTrades", "Block trades while the mailbox is open"}}) do
         local key = pair[1]
         controls[key] = checkbox(content, pair[2], 16, y, self.db.options[key], function(value) M:SetOption(key, value) end)
-        if key == "rememberLastRecipient" then
-            label(content, "Recipient autofill pauses in Controller UI, even when enabled.", 45, y - 29, 480)
-            y = y - 36
-        end
         y = y - 42
     end
     local reserve = button(content, "", 16, y - 8, 260, function()

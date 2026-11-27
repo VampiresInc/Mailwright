@@ -98,6 +98,12 @@ function M:Recipient() return SendMailNameEditBox and self:Trim(SendMailNameEdit
 function M:SetRecipient(name)
     local ok, why = self:CanRecipient(name)
     if not ok then self:Print(why); return false end
+    -- Re-entering Send Mail or clearing focus can disrupt controller navigation.
+    if InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled() then
+        if not SendMailFrame or not SendMailFrame:IsVisible() or not SendMailNameEditBox then return false end
+        SendMailNameEditBox:SetText(name)
+        return true
+    end
     if MailFrameTab_OnClick then MailFrameTab_OnClick(nil, 2) end
     if SendMailNameEditBox then SendMailNameEditBox:SetText(name); SendMailNameEditBox:ClearFocus() end
     return true

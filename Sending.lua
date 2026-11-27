@@ -120,15 +120,18 @@ function M:LastRecipientKey()
     return self:Client() .. "\031" .. guid .. "\031" .. (self.forever and self:Ruleset() or self:Realm())
 end
 function M:RestoreLastRecipient()
-    -- Programmatic recipient changes can taint Forever's controller bindings.
-    -- Keep the saved preference/name, but do not restore into that interface.
-    if InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled() then return end
+    -- Wait until Send Mail is visible before restoring in Controller UI.
+    local controller = InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled()
+    if controller and (not SendMailFrame or not SendMailFrame:IsVisible()) then return end
     if not self.db or not self.db.options.rememberLastRecipient or not self.mailOpen or self.conflict
         or not SendMailNameEditBox or self:Recipient() ~= "" then return end
     local key = self:LastRecipientKey()
     local name = key and self.db.lastRecipients[key]
     -- Restoring text must not navigate to Send Mail like an explicit contact click.
-    if type(name) == "string" and self:CanRecipient(name) then SendMailNameEditBox:SetText(name) end
+    if type(name) == "string" then
+        if controller then self:SetRecipient(name)
+        elseif self:CanRecipient(name) then SendMailNameEditBox:SetText(name) end
+    end
 end
 function M:InstallSendHooks()
     if SendMailFrame and not self.sendShowHook then

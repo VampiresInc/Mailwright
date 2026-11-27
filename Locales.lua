@@ -1479,15 +1479,6 @@ translations.zhTW["Copy all"] = "全部複製"
 translations.zhTW["Clear log"] = "清空記錄"
 translations.zhTW["Run checks"] = "執行檢查"
 translations.zhTW["Select the report, then Ctrl+C to copy."] = "選取報告，然後按 Ctrl+C 複製。"
-translations.deDE["Recipient autofill pauses in Controller UI, even when enabled."] = "Die Empfänger-Autovervollständigung pausiert im Controller-UI, auch wenn sie aktiviert ist."
-translations.frFR["Recipient autofill pauses in Controller UI, even when enabled."] = "Le remplissage du destinataire est suspendu dans l’interface manette, même activé."
-translations.esES["Recipient autofill pauses in Controller UI, even when enabled."] = "El destinatario no se rellena en la interfaz de mando, aunque la opción esté activada."
-translations.itIT["Recipient autofill pauses in Controller UI, even when enabled."] = "Il destinatario automatico è sospeso nell’interfaccia controller, anche se attivato."
-translations.ptBR["Recipient autofill pauses in Controller UI, even when enabled."] = "O preenchimento do destinatário pausa na interface de controle, mesmo ativado."
-translations.ruRU["Recipient autofill pauses in Controller UI, even when enabled."] = "Автоподстановка получателя приостановлена в интерфейсе контроллера, даже если включена."
-translations.koKR["Recipient autofill pauses in Controller UI, even when enabled."] = "설정이 켜져 있어도 컨트롤러 UI에서는 받는 사람 자동 입력이 일시 중지됩니다."
-translations.zhCN["Recipient autofill pauses in Controller UI, even when enabled."] = "即使已启用，在控制器界面中也会暂停自动填写收件人。"
-translations.zhTW["Recipient autofill pauses in Controller UI, even when enabled."] = "即使已啟用，在控制器介面中也會暫停自動填寫收件者。"
 translations.esMX = translations.esES
 
 M.languages = {{"auto", "Automatic (WoW language)"}, {"enUS", "English"}, {"deDE", "Deutsch"},

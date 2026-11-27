@@ -25,7 +25,7 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 
 ## Compatibility
 
-**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.15 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.16 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
@@ -79,4 +79,4 @@ The saved log retains up to 50 distinct issues, combines repeats, and survives r
 
 **Run checks** inspects initialization and API availability without sending, collecting or deleting mail. A successful check does not guarantee controller compatibility or that the game will permit protected actions. Historical issues remain visible until cleared.
 
-Remembered-recipient autofill is suspended while Blizzard's Controller UI is active to avoid a blocked-action error when closing Send Mail. The saved name and preference are retained for the normal interface.
+With Controller UI enabled, remembered recipients fill in when you open Send Mail. Recipient menus fill the open draft without moving controller focus.

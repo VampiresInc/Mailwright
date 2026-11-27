@@ -434,9 +434,6 @@ function M:ShowOptionsMenu(anchor)
             M:SetOption(key, not M.db.options[key])
             M:ShowOptionsMenu(M.optionsAnchor)
         end}
-        if key == "rememberLastRecipient" then
-            entries[#entries + 1] = {text = "Recipient autofill pauses in Controller UI, even when enabled.", disabled = true}
-        end
     end
     entries[#entries + 1] = {text = self:F("Free bag slots: %d (+1; Shift -1)", self.db.options.reserve), action = function()
         M.db.options.reserve = math.max(0, math.min(100, M.db.options.reserve + (IsShiftKeyDown() and -1 or 1))); M:ShowOptionsMenu(M.optionsAnchor)

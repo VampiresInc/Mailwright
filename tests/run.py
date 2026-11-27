@@ -893,17 +893,21 @@ m:PrepareMailboxUI(); assert(not m.ui)
 MailFrame:Hide(); m:PrepareMailboxUI(); assert(m.ui)
 """)
 lua, compile_fn = runtime()
-check('recipient restoration skips Controller UI without discarding preference or saved name', r"""
+check('recipient restoration waits for visible Send Mail in Controller UI', r"""
 local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m.mailOpen=true
 m.db.options.rememberLastRecipient=true
 local key=m:LastRecipientKey(); m.db.lastRecipients[key]='Saved Person'
 local controller=true
 InputUtil={IsGamepadUIEnabled=function() return controller end}
+SendMailFrame.IsVisible=SendMailFrame.IsShown
+SendMailFrame:Hide()
+MailFrameTab_OnClick=function() error("unexpected tab change") end
+SendMailNameEditBox.ClearFocus=function() error("unexpected focus change") end
 local writes=0; local setText=SendMailNameEditBox.SetText
 SendMailNameEditBox.SetText=function(self,text) writes=writes+1; setText(self,text) end
 m:RestoreLastRecipient(); assert(writes==0 and m:Recipient()=='')
 assert(m.db.options.rememberLastRecipient and m.db.lastRecipients[key]=='Saved Person')
-controller=false; m:RestoreLastRecipient(); assert(writes==1 and m:Recipient()=='Saved Person')
+SendMailFrame:Show(); m:RestoreLastRecipient(); assert(writes==1 and m:Recipient()=='Saved Person')
 setText(SendMailNameEditBox,'Typed Person'); controller=true; m:RestoreLastRecipient()
 assert(writes==1 and m:Recipient()=='Typed Person')
 setText(SendMailNameEditBox,''); InputUtil=nil; m:RestoreLastRecipient()
@@ -916,5 +920,19 @@ InputUtil={IsGamepadUIEnabled=function() return true end}
 MailFrame:Hide(); MailItem1=CreateFrame('Frame',nil,InboxFrame)
 MailItem1.Button=CreateFrame('Button',nil,MailItem1)
 m:PrepareMailboxUI(); assert(m.inboxChecks[1] and m.openAll and m.settingsButton)
+""")
+lua, compile_fn = runtime()
+check('controller recipient menu fills the visible draft without changing tab or focus', r"""
+local m=Mailwright
+m:Emit('ADDON_LOADED','Mailwright')
+InputUtil={IsGamepadUIEnabled=function() return true end}
+SendMailFrame.IsVisible=SendMailFrame.IsShown
+MailFrameTab_OnClick=function() error('unexpected tab change') end
+SendMailNameEditBox.ClearFocus=function() error('unexpected focus change') end
+SendMailFrame:Hide()
+assert(not m:SetRecipient('Picked Person') and m:Recipient()=='')
+SendMailFrame:Show()
+assert(m:SetRecipient('Picked Person') and m:Recipient()=='Picked Person')
+assert(#calls==0)
 """)
 print('All Mailwright checks passed. In-game client testing is still required.')

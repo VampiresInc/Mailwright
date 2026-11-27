@@ -127,7 +127,6 @@ function M:IssueReport(checks)
     local out = {"== " .. self:IssueEnvironment(), "Generated: " .. stamp(),
         "GamePadEnable: " .. query(GetCVar, "GamePadEnable") .. " | Controller UI: " .. query(InputUtil and InputUtil.IsGamepadUIEnabled),
         "Controller settings may be unavailable on this client; gamepad enabled does not prove Controller UI is active.",
-        "Remembered-recipient autofill is suspended in Controller UI | diagnostic revision: 4",
         "Mailbox open: " .. tostring(not not self.mailOpen) .. " | combat: " .. query(InCombatLockdown),
         "Errors observed near mailbox use are not proof of the cause. No contact list or mail content is collected.", ""}
     if checks then
