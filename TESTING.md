@@ -89,3 +89,7 @@ for about half a second must close it. Selecting a name or Close must dismiss al
 levels. Check class-colored level/class details, guild ranks and All Alts realm/
 faction labels. Missing metadata should simply be omitted. Confirm the To field
 contains only the recipient address, never its class, rank or color markup.
+
+## Follow-up: Controller UI recipient restoration
+
+The 0.2.15 safeguard skips remembered-recipient autofill in Blizzard Controller UI. Investigate a supported alternative without tainting its binding state. Keep the safeguard until tested opening Send Mail and closing with both Cancel and B, across repeated visits. Do not assume a delayed SetText call fixes taint.

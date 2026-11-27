@@ -1,6 +1,6 @@
 ## Interface: 120105
 ## Title: Mailwright
-## Version: 0.2.14
+## Version: 0.2.15
 ## Author: Arametheus
 ## X-Curse-Project-ID: 1706898
 ## X-Wago-ID: v63Qq7Gb
@@ -14,6 +14,7 @@
 Core.lua
 Locales.lua
 API.lua
+Issues.lua
 Contacts.lua
 Mailbox.lua
 Sending.lua

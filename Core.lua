@@ -2,12 +2,13 @@ local addon, ns = ...
 local M = CreateFrame("Frame")
 ns.M = M
 _G.Mailwright = M
-M.addon, M.version = addon, "0.2.14"
+M.addon, M.version = addon, "0.2.15"
 M.listeners, M.selection = {}, {}
 M.defaults = {language = "auto", reserve = 1, delay = 0.35, blockTrades = true, express = true,
     autoSend = false, moneySubject = true, summary = true, auctions = true,
     rememberLastRecipient = true, showAttachTabs = true, items = true, money = true, quality = 0, bag = -1, category = "All"}
 function M:Print(s)
+    if self.RecordOperationalIssue then self:RecordOperationalIssue(s) end
     if DEFAULT_CHAT_FRAME then DEFAULT_CHAT_FRAME:AddMessage("|cff66ccffMailwright:|r " .. tostring(self:L(s))) end
 end
 function M:Listen(event, callback)
@@ -24,7 +25,7 @@ function M:Initialize()
     self.loadedData = type(MailwrightDB) == "table"
     if not self.loadedData then MailwrightDB = {} end
     local db = MailwrightDB
-    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients", "lastRecipients", "friendCharacters"}) do
+    for _, key in ipairs({"contacts", "alts", "recent", "options", "recipients", "lastRecipients", "friendCharacters", "issues"}) do
         if type(db[key]) ~= "table" then db[key] = {} end
     end
     for k, v in pairs(self.defaults) do if type(db.options[k]) ~= type(v) then db.options[k] = v end end
@@ -40,6 +41,8 @@ function M:Initialize()
     db.sessions = (tonumber(db.sessions) or 0) + 1
     db.schema = 1
     self.db = db
+    while #db.issues > 50 do table.remove(db.issues, 1) end
+    self:InstallIssueCapture()
     self.forever = ns.forever or (type(GetBuildInfo) == "function" and select(4, GetBuildInfo()) == 16001) or false
     self:RecordPlayer()
     self:RegisterSettings()
@@ -50,6 +53,7 @@ M:Listen("PLAYER_ENTERING_WORLD", function(self) if self.db then self:RecordPlay
 function M:SetMailOpen(open)
     if not self.db or self.mailOpen == open then return end
     self.mailOpen = open
+    self.lastMailTransition = GetTime()
     if open then
         self:RecordPlayer()
         self.collected = 0
@@ -98,7 +102,8 @@ function M:Status()
 end
 SLASH_MAILWRIGHT1, SLASH_MAILWRIGHT2 = "/mailwright", "/mw"
 SlashCmdList.MAILWRIGHT = function(msg)
-    if msg == "export" and M.db then M:TextWindow("Export contacts", M:ExportContacts(), false)
+    if msg == "issues" then M:ShowIssues()
+    elseif msg == "export" and M.db then M:TextWindow("Export contacts", M:ExportContacts(), false)
     elseif msg == "import" and M.db then M:TextWindow("Import contacts", "", true)
     elseif M.mailOpen and msg ~= "status" and not M.conflict then M:ShowUI(); M:ShowOptionsMenu()
     else M:Print(M:Status()) end
@@ -110,6 +115,7 @@ M:SetScript("OnUpdate", function(self, delta)
     elapsed = elapsed + delta
     if elapsed < 0.1 or not self.db then return end
     elapsed = 0
+    self:PrepareMailboxUI()
     local shown = MailFrame and MailFrame:IsShown() or false
     if shown ~= (not not self.mailOpen) then self:SetMailOpen(shown) end
     if self.mailOpen and not self.conflict then

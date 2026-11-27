@@ -434,6 +434,9 @@ function M:ShowOptionsMenu(anchor)
             M:SetOption(key, not M.db.options[key])
             M:ShowOptionsMenu(M.optionsAnchor)
         end}
+        if key == "rememberLastRecipient" then
+            entries[#entries + 1] = {text = "Recipient autofill pauses in Controller UI, even when enabled.", disabled = true}
+        end
     end
     entries[#entries + 1] = {text = self:F("Free bag slots: %d (+1; Shift -1)", self.db.options.reserve), action = function()
         M.db.options.reserve = math.max(0, math.min(100, M.db.options.reserve + (IsShiftKeyDown() and -1 or 1))); M:ShowOptionsMenu(M.optionsAnchor)
@@ -444,6 +447,7 @@ function M:ShowOptionsMenu(anchor)
     entries[#entries + 1] = {text = "All settings...", action = function() M.menu:Hide(); M:OpenSettings() end}
     entries[#entries + 1] = {text = "Collect money only", action = function() M.menu:Hide(); M:StartQueue("money") end}
     entries[#entries + 1] = {text = "Quick attach >", action = function() M:ShowAttachMenu() end}
+    entries[#entries + 1] = {text = "Issue log", action = function() M.menu:Hide(); M:ShowIssues() end}
     entries[#entries + 1] = {text = "Saved-data status", action = function() M:Print(M:Status()); M.menu:Hide() end}
     self:SmallMenu("Mailwright", entries, self.optionsAnchor)
 end

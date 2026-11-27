@@ -25,7 +25,7 @@ Configure Mailwright through the game Settings > AddOns > Mailwright panel (Inte
 
 ## Compatibility
 
-**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.14 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
+**Release:** Retail 12.1.5, Classic Era 1.15.9, Mists Classic 5.5.4, and Burning Crusade Anniversary 2.5.6. Download the ZIP for your client. Forever 1.60.1 is also supported. Version 0.2.15 provides separate packages for all five clients. Retail 12.1.5 has been tested in-game by Arametheus.
 
 **Forever:** Native saved-data loading passed a full restart test on build 1.60.1.70009 with the local forced-load workaround disabled. The release uses normal SavedVariables loading; no workaround is included.
 
@@ -70,3 +70,13 @@ Battle.net characters seen online are remembered in the Friends menu after they 
 Attaching an item fills an empty mail subject with its localized name. Custom subjects and forwarding subjects are preserved.
 
 Mailwright automatically makes room for TradeSkillMaster's mailbox switch when TSM is loaded. The top options button remains visible on Inbox and Send Mail with or without TSM; no separate compatibility addon is needed.
+
+### Reporting problems
+
+Run `/mw issues` (also available from Mailwright options) after reproducing a problem. Click **Copy all**, press Ctrl+C, and paste the report with your reproduction steps. The report includes Mailwright version, game version/build/interface, client, locale and available gamepad settings. Technical reports use English labels; window controls follow your selected language.
+
+The saved log retains up to 50 distinct issues, combines repeats, and survives reloads. It captures Mailwright-related Lua errors, actions attributed to Mailwright, selected failed mail operations, and controller errors around mailbox use (marked as cause unknown). Capture can be incomplete if another addon replaces the error handler. Clear log erases this history. Contact lists and mail content are not collected; quoted error payloads, links and local-variable dumps are removed.
+
+**Run checks** inspects initialization and API availability without sending, collecting or deleting mail. A successful check does not guarantee controller compatibility or that the game will permit protected actions. Historical issues remain visible until cleared.
+
+Remembered-recipient autofill is suspended while Blizzard's Controller UI is active to avoid a blocked-action error when closing Send Mail. The saved name and preference are retained for the normal interface.

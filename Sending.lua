@@ -120,6 +120,9 @@ function M:LastRecipientKey()
     return self:Client() .. "\031" .. guid .. "\031" .. (self.forever and self:Ruleset() or self:Realm())
 end
 function M:RestoreLastRecipient()
+    -- Programmatic recipient changes can taint Forever's controller bindings.
+    -- Keep the saved preference/name, but do not restore into that interface.
+    if InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled() then return end
     if not self.db or not self.db.options.rememberLastRecipient or not self.mailOpen or self.conflict
         or not SendMailNameEditBox or self:Recipient() ~= "" then return end
     local key = self:LastRecipientKey()

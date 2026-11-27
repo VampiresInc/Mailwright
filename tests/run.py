@@ -11,7 +11,7 @@ def runtime():
     compile_fn = lua.eval('function(code,name) local fn,err=loadstring(code,name); assert(fn,err); return fn end')
     lua.execute((ROOT / 'tests/harness.lua').read_text(encoding='utf-8'))
     ns = lua.table()
-    for filename in ['Core.lua','Locales.lua','API.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua']:
+    for filename in ['Core.lua','Locales.lua','API.lua','Issues.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua']:
         compile_fn((ROOT / filename).read_text(encoding='utf-8'), '@'+filename)('Mailwright', ns)
     return lua, compile_fn
 
@@ -802,4 +802,119 @@ m:LayoutSettingsButton(); assert(b.anchor[1]=='TOPLEFT' and b.anchor[4]==235)
 IsAddOnLoaded=function() return false end
 m:LayoutSettingsButton(); assert(b.anchor[4]==300 and b.level==641)
 ''')
+lua, compile_fn = runtime()
+check('issue log persists, combines repeats, caps history and retains original build', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+date=function() return '2026-11-26 18:00:00' end
+m:LogIssue('warning','operation','test failure'); m:LogIssue('warning','operation','test failure')
+assert(#m.db.issues==1 and m.db.issues[1].count==2)
+assert(m.db.issues[1].environment:find('build 69913',1,true))
+GetBuildInfo=function() return '12.1.5','71139','date',120105 end
+m:LogIssue('warning','operation','test failure'); assert(#m.db.issues==2)
+local report=m:IssueReport(); assert(report:find('game 12.1.5',1,true) and report:find('build 69913',1,true))
+m.db=nil; m:Initialize(); assert(#m.db.issues==2)
+for i=1,60 do m:LogIssue('warning','operation','failure '..i) end
+assert(#m.db.issues==50 and m.db.issues[1].detail=='failure 11')
+local before=m.db.issues
+m:IssueReport(true); assert(m.db.issues==before and #before==50 and #calls==0)
+""")
+lua, compile_fn = runtime()
+check('issue capture chains errors, filters unrelated failures and labels controller context', r"""
+local m=Mailwright
+local seen={}; local handler=function(message) seen[#seen+1]=message; return 'original result' end
+geterrorhandler=function() return handler end
+seterrorhandler=function(fn) handler=fn end
+debugstack=function() return 'Interface/AddOns/Mailwright/Issues.lua:12\nInterface/AddOns/Other/Other.lua:4' end
+m:Emit('ADDON_LOADED','Mailwright')
+assert(handler('Other addon error')=='original result' and #m.db.issues==0)
+handler('Interface/AddOns/Mailwright/UI.lua:4: bad value "Private Person"\nLocals:\nsecret mail body')
+assert(#m.db.issues==1 and #seen==2)
+assert(not m.db.issues[1].detail:find('Private Person',1,true))
+assert(not m.db.issues[1].detail:find('secret mail body',1,true))
+handler('Blizzard_ControllerUI.lua:4: bad value'); assert(#m.db.issues==1)
+m.mailOpen=true
+handler('Blizzard_ControllerUI.lua:4: bad value'); assert(#m.db.issues==2)
+assert(m.db.issues[2].source:find('cause unknown',1,true))
+m.mailOpen=false; m.lastMailTransition=GetTime(); clock=clock+2
+handler('Blizzard_ControllerUI.lua:4: bad value'); assert(m.db.issues[2].count==2)
+clock=clock+5; handler('Blizzard_ControllerUI.lua:4: bad value'); assert(m.db.issues[2].count==2)
+local old=m.RecordIssue; m.RecordIssue=function() error('logger failed') end
+assert(handler('Mailwright failure')=='original result')
+m.RecordIssue=old
+m:Emit('ADDON_ACTION_BLOCKED','Other','OtherAction()'); assert(#m.db.issues==2)
+m:Emit('ADDON_ACTION_FORBIDDEN','Mailwright','ProtectedAction()'); assert(#m.db.issues==3)
+local installed=handler; m:InstallIssueCapture(); assert(handler==installed)
+local secret={}; issecretvalue=function(v) return v==secret end
+handler(secret); m:Emit('ADDON_ACTION_BLOCKED',secret,secret)
+assert(#m.db.issues==3 and seen[#seen]==secret)
+""")
+lua, compile_fn = runtime()
+check('issue window checks and copy preserve mail and clear affects only issue history', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+m.db.contacts.test={name='Private Person'}
+SendMailNameEditBox:SetText('Private Recipient'); SendMailSubjectEditBox:SetText('Private Subject')
+m:Print('Inventory changed. Review the draft before attaching again.')
+assert(#m.db.issues==1)
+SlashCmdList.MAILWRIGHT('issues'); assert(m.issueWindow:IsShown())
+local report=m.issueWindow.edit:GetText()
+assert(not report:find('Private',1,true))
+m:ShowIssues(true); assert(#calls==0 and #m.db.issues==1)
+assert(SendMailSubjectEditBox:GetText()=='Private Subject')
+local clear,copy
+for _,f in ipairs(frames) do
+ if f:GetParent()==m.issueWindow and f:GetText()=='Clear log' then clear=f end
+ if f:GetParent()==m.issueWindow and f:GetText()=='Copy all' then copy=f end
+end
+assert(clear and copy); copy:GetScript('OnClick')()
+clear:GetScript('OnClick')(); assert(#m.db.issues==0 and m.db.contacts.test)
+assert(m.issueWindow.edit:GetText():find('No issues recorded',1,true))
+""")
+lua, compile_fn = runtime()
+check('controller mailbox controls are prepared before opening, without active-panel frame creation', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+InputUtil={IsGamepadUIEnabled=function() return true end}
+MailFrame:Hide()
+m:Emit('PLAYER_LOGIN'); assert(m.ui and m.settingsButton)
+local create=CreateFrame
+CreateFrame=function(...)
+ assert(not MailFrame:IsShown(), 'created a frame under active controller mailbox')
+ return create(...)
+end
+MailFrame:Show(); m:Emit('MAIL_SHOW'); m:RefreshUI(); m:Emit('MAIL_CLOSED'); MailFrame:Hide()
+MailFrame:Show(); m:Emit('MAIL_SHOW'); m:RefreshUI()
+assert(m:IssueReport():find('Controller UI: true',1,true))
+""")
+lua, compile_fn = runtime()
+check('late controller setup waits for closed mailbox before creating controls', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+InputUtil={IsGamepadUIEnabled=function() return true end}
+MailFrame:Show(); m:ShowUI(); assert(not m.ui)
+m:PrepareMailboxUI(); assert(not m.ui)
+MailFrame:Hide(); m:PrepareMailboxUI(); assert(m.ui)
+""")
+lua, compile_fn = runtime()
+check('recipient restoration skips Controller UI without discarding preference or saved name', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright'); m.mailOpen=true
+m.db.options.rememberLastRecipient=true
+local key=m:LastRecipientKey(); m.db.lastRecipients[key]='Saved Person'
+local controller=true
+InputUtil={IsGamepadUIEnabled=function() return controller end}
+local writes=0; local setText=SendMailNameEditBox.SetText
+SendMailNameEditBox.SetText=function(self,text) writes=writes+1; setText(self,text) end
+m:RestoreLastRecipient(); assert(writes==0 and m:Recipient()=='')
+assert(m.db.options.rememberLastRecipient and m.db.lastRecipients[key]=='Saved Person')
+controller=false; m:RestoreLastRecipient(); assert(writes==1 and m:Recipient()=='Saved Person')
+setText(SendMailNameEditBox,'Typed Person'); controller=true; m:RestoreLastRecipient()
+assert(writes==1 and m:Recipient()=='Typed Person')
+setText(SendMailNameEditBox,''); InputUtil=nil; m:RestoreLastRecipient()
+assert(writes==2 and m:Recipient()=='Saved Person')
+""")
+lua, compile_fn = runtime()
+check('controller test retains Mailwright inbox controls after temporary guard removal', r"""
+local m=Mailwright; m:Emit('ADDON_LOADED','Mailwright')
+InputUtil={IsGamepadUIEnabled=function() return true end}
+MailFrame:Hide(); MailItem1=CreateFrame('Frame',nil,InboxFrame)
+MailItem1.Button=CreateFrame('Button',nil,MailItem1)
+m:PrepareMailboxUI(); assert(m.inboxChecks[1] and m.openAll and m.settingsButton)
+""")
 print('All Mailwright checks passed. In-game client testing is still required.')

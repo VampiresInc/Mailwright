@@ -8,7 +8,7 @@ $parent = (Resolve-Path -LiteralPath $AddOnsPath).Path
 if ((Split-Path $parent -Leaf) -ne 'AddOns') { throw 'The destination must be an existing AddOns directory.' }
 $destination = [IO.Path]::GetFullPath((Join-Path $parent 'Mailwright'))
 if ((Split-Path $destination -Parent) -ne $parent) { throw 'Destination validation failed.' }
-$files = @('Core.lua','API.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua','FlavorForever.lua','LICENSE','README.md','TESTING.md')
+$files = @('Core.lua','Locales.lua','API.lua','Issues.lua','Contacts.lua','Mailbox.lua','Sending.lua','UI.lua','MailboxUI.lua','FlavorForever.lua','LICENSE','README.md','TESTING.md')
 $files += Get-ChildItem -LiteralPath $source -Filter 'Mailwright*.toc' | ForEach-Object { $_.Name }
 foreach ($name in $files) {
     if (-not (Test-Path -LiteralPath (Join-Path $source $name) -PathType Leaf)) { throw "Missing source file: $name" }

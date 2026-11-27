@@ -51,8 +51,26 @@ function M:ToggleSelection(h, checked)
     self.lastSelected = h.index
     self:RefreshUI()
 end
+-- Blizzard's gamepad navigation hooks CreateFrame and refreshes active panels.
+-- Build mailbox children before opening it so that refresh never runs from our
+-- first-open construction path while controller bindings are active.
+function M:PrepareMailboxUI()
+    if not self.db or self.ui or not MailFrame or not InboxFrame then return end
+    if MailFrame:IsShown() or (InCombatLockdown and InCombatLockdown()) then return end
+    self:BuildUI()
+    if self.ui then self:RefreshUI() end
+end
+M:Listen("PLAYER_LOGIN", function(self) self:PrepareMailboxUI() end)
+M:Listen("ADDON_LOADED", function(self, name)
+    if name == "Blizzard_MailFrame" then self:PrepareMailboxUI() end
+end)
 function M:ShowUI()
-    if not self.ui then self:BuildUI() end
+    if not self.ui then
+        -- In controller mode wait until the mailbox closes before constructing
+        -- controls if the UI was loaded too late to prepare them beforehand.
+        if InputUtil and InputUtil.IsGamepadUIEnabled and InputUtil.IsGamepadUIEnabled() then return end
+        self:BuildUI()
+    end
     if self.ui then self.ui:Show(); self:RefreshUI() end
 end
 function M:TextWindow(title, text, importing)
@@ -155,7 +173,7 @@ function M:RegisterSettings()
     local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 0, -72); scroll:SetPoint("BOTTOMRIGHT", -28, 8)
     local content = CreateFrame("Frame", nil, scroll)
-    content:SetSize(560, 660); scroll:SetScrollChild(content)
+    content:SetSize(560, 720); scroll:SetScrollChild(content)
     local controls = {}
     local language = button(content, "", 16, -4, 350, function(b) M:ChooseLanguage(b) end)
     button(content, "Reload UI", 380, -4, 150, function() if ReloadUI then ReloadUI() end end)
@@ -167,6 +185,10 @@ function M:RegisterSettings()
         {"moneySubject", "Money subject"}, {"summary", "Money summary"}, {"blockTrades", "Block trades while the mailbox is open"}}) do
         local key = pair[1]
         controls[key] = checkbox(content, pair[2], 16, y, self.db.options[key], function(value) M:SetOption(key, value) end)
+        if key == "rememberLastRecipient" then
+            label(content, "Recipient autofill pauses in Controller UI, even when enabled.", 45, y - 29, 480)
+            y = y - 36
+        end
         y = y - 42
     end
     local reserve = button(content, "", 16, y - 8, 260, function()
@@ -178,6 +200,7 @@ function M:RegisterSettings()
         M:SetOption("delay", n > 2 and 0.25 or n)
     end)
     label(content, "Click to cycle collection delay", 290, y - 48, 240)
+    button(content, "Issue log", 16, y - 80, 180, function() M:ShowIssues() end)
     f.refresh = function()
         language:SetText(M:L("Language") .. ": " .. M:LanguageName())
         for key, control in pairs(controls) do control:SetChecked(M.db.options[key]) end
@@ -204,4 +227,33 @@ function M:OpenSettings()
     else
         self:Print("AddOns settings are unavailable on this client; use /mw at a mailbox.")
     end
+end
+
+function M:ShowIssues(checks)
+    if not self.issueWindow then
+        local f = panel("MailwrightIssueWindow", 700, 510)
+        f.title = label(f, "Issue log", 18, -16, 620, "GameFontNormalLarge")
+        label(f, "Select the report, then Ctrl+C to copy.", 18, -48, 650)
+        local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+        scroll:SetPoint("TOPLEFT", 18, -80); scroll:SetSize(640, 370)
+        local edit = CreateFrame("EditBox", nil, scroll)
+        edit:SetMultiLine(true); edit:SetFontObject(ChatFontNormal); edit:SetWidth(630); edit:SetHeight(370)
+        edit:SetAutoFocus(false); edit:SetMaxLetters(200000); scroll:SetScrollChild(edit)
+        edit:SetScript("OnEscapePressed", function() edit:ClearFocus(); f:Hide() end)
+        edit:SetScript("OnCursorChanged", function(_, x, y, w, h)
+            local current = scroll:GetVerticalScroll()
+            if -y < current then scroll:SetVerticalScroll(-y)
+            elseif -y + h > current + 370 then scroll:SetVerticalScroll(-y + h - 370) end
+        end)
+        f.edit = edit; f.scroll = scroll
+        button(f, "Copy all", 18, -470, 120, function() edit:SetFocus(); edit:HighlightText() end)
+        button(f, "Clear log", 148, -470, 120, function() if M.db then M.db.issues = {} end; M:ShowIssues() end)
+        button(f, "Run checks", 278, -470, 120, function() M:ShowIssues(true) end)
+        button(f, "Issue log", 408, -470, 120, function() M:ShowIssues() end)
+        button(f, "Close", 548, -470, 120, function() f:Hide() end)
+        self.issueWindow = f
+    end
+    local f = self.issueWindow
+    f.title:SetText(self:L("Issue log")); f.edit:SetText(self:IssueReport(checks))
+    f.scroll:SetVerticalScroll(0); f:Show(); f:Raise()
 end
